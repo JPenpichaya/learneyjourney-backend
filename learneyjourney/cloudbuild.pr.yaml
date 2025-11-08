@@ -1,0 +1,52 @@
+substitutions:
+  _REGION: "asia-southeast1"
+  _REPO: "app-images"
+  _SERVICE_PREFIX: "learneyjourney-api-pr"
+  _IMAGE: "asia-southeast1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_PREFIX}-${PR_NUMBER}"
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "${_IMAGE}:${SHORT_SHA}", "."]
+
+  - name: gcr.io/cloud-builders/docker
+    args: ["push", "${_IMAGE}:${SHORT_SHA}"]
+
+  # Optional: run tests here if not done inside Docker build
+  # - name: gcr.io/cloud-builders/mvn
+  #   args: ["-DskipTests=false", "test"]
+
+  # Deploy a per-PR preview service
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - "${_SERVICE_PREFIX}-${PR_NUMBER}"
+      - "--image=${_IMAGE}:${SHORT_SHA}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--allow-unauthenticated"
+      - "--min-instances=0"
+      - "--max-instances=2"
+      # If the preview needs DB, wire it (or use a staging DB)
+      # - "--add-cloudsql-instances=p-ying-api:asia-southeast1:learneyjourney-dev"
+      # - "--set-secrets=DB_PASSWORD=projects/$PROJECT_ID/secrets/DB_PASSWORD:latest"
+      - "--set-env-vars=SPRING_PROFILES_ACTIVE=staging"
+
+  # Comment the preview URL back to the PR (needs GITHUB_TOKEN secret)
+  - name: "curlimages/curl"
+    entrypoint: /bin/sh
+    args:
+      - "-c"
+      - |
+        PREVIEW_URL=$(gcloud run services describe ${_SERVICE_PREFIX}-${PR_NUMBER} --region ${_REGION} --format='value(status.url)')
+        curl -s -H "Authorization: token $$GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          -d "{\"body\":\"Preview for PR #${PR_NUMBER}: ${PREVIEW_URL}\"}" \
+          "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/${PR_NUMBER}/comments"
+    secretEnv: ["GITHUB_TOKEN"]
+
+availableSecrets:
+  secretManager:
+    - versionName: "projects/$PROJECT_ID/secrets/GITHUB_TOKEN/versions/latest"
+      env: "GITHUB_TOKEN"
