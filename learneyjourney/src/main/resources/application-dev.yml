@@ -1,0 +1,15 @@
+spring:
+  url: "jdbc:postgresql://34.142.188.77:5432/learneyjourney-dev?sslmode=require"
+  username: "postgres"   # e.g. postgres
+  password: ">-6[T;]rz%cxgp-T"
+  hikari:
+    maximum-pool-size: 5
+    minimum-idle: 1
+    idle-timeout: 60000
+    connection-timeout: 20000
+    max-lifetime: 1800000
+logging:
+  level:
+    root: info
+app:
+  allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173"

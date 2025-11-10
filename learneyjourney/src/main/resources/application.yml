@@ -14,3 +14,5 @@ spring:
       idle-timeout: 60000
       connection-timeout: 20000
       max-lifetime: 1800000
+  profiles:
+    active: local
