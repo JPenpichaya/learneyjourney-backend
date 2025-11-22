@@ -6,4 +6,4 @@ spring:
     password: devpass
 logging:
   level:
-    root: info
+    root: prd
