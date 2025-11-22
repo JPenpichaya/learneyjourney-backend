@@ -3,7 +3,8 @@ FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY . .
 # Maven:
-RUN ./mvnw -DskipTests package
+RUN chmod +x mvnw \
+    && ./mvnw -DskipTests package
 # Gradle (instead): RUN ./gradlew bootJar
 
 # ---- run stage ----
