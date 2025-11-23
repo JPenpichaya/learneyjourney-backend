@@ -23,7 +23,7 @@ public class CorsConfig {
                 "https://learneyjourney.com"
         ));          // use addAllowedOrigin for exact origins
         cfg.setAllowCredentials(true);              // if you ever send cookies (not needed for bearer tokens)
-        cfg.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","X-Requested-With"));
+        cfg.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","X-Requested-With", "Origin"));
         cfg.setExposedHeaders(List.of("Authorization"));                    // or be explicit: Authorization, Content-Type
         cfg.addAllowedMethod(HttpMethod.GET);
         cfg.addAllowedMethod(HttpMethod.POST);

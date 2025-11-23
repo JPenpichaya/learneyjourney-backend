@@ -18,7 +18,8 @@ import java.util.List;
 public class FirebaseAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(jakarta.servlet.http.HttpServletRequest req) {
-        return "OPTIONS".equalsIgnoreCase(req.getMethod())
+        return req.getRequestURI().startsWith("/api/auth/login")
+                || "OPTIONS".equalsIgnoreCase(req.getMethod())
                 || req.getRequestURI().startsWith("/public")
                 || "/health".equals(req.getRequestURI())
                 || req.getRequestURI().equals("/dbcheck");

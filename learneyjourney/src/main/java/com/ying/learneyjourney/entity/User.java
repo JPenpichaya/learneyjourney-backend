@@ -15,7 +15,7 @@ import java.util.UUID;
 public class User extends Auditable {
     @Id
     @Column(name = "id", nullable = false, updatable = false)
-    private UUID id; // Firebase UID
+    private String id; // Firebase UID
 
     @Column(nullable = true, unique = true)
     private String email;

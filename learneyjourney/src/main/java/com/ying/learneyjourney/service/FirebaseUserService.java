@@ -24,7 +24,7 @@ public class FirebaseUserService {
         // 1. Verify token with Firebase
         FirebaseToken decoded = FirebaseAuth.getInstance().verifyIdToken(idToken);
 
-        UUID uid = UUID.fromString(decoded.getUid());
+        String uid = decoded.getUid();
         String email = decoded.getEmail();
         String name = (String) decoded.getClaims().getOrDefault("name", null);
         String picture = (String) decoded.getClaims().getOrDefault("picture", null);
@@ -50,7 +50,7 @@ public class FirebaseUserService {
         return userRepository.save(user);
     }
 
-    private User createNewUser(UUID uid, String email, String name, String picture) {
+    private User createNewUser(String uid, String email, String name, String picture) {
         User user = new User();
         user.setId(uid);
         user.setEmail(email);
