@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.dto;
 
+import com.ying.learneyjourney.constaint.EnumUserRoles;
 import com.ying.learneyjourney.entity.User;
 import lombok.Data;
 
@@ -11,6 +12,8 @@ public class UserDto {
     private String email;
     private String displayName;
     private String photoUrl;
+    private String stripConnect;
+    private EnumUserRoles role;
 
     public static UserDto from(User e){
         UserDto dto = new UserDto();
@@ -18,6 +21,8 @@ public class UserDto {
         dto.setEmail(e.getEmail());
         dto.setDisplayName(e.getDisplayName());
         dto.setPhotoUrl(e.getPhotoUrl());
+        dto.setStripConnect(e.getStripConnect());
+        dto.setRole(e.getRole());
         return dto;
     }
 
@@ -27,6 +32,8 @@ public class UserDto {
         e.setEmail(dto.getEmail());
         e.setDisplayName(dto.getDisplayName());
         e.setPhotoUrl(dto.getPhotoUrl());
+        e.setStripConnect(dto.getStripConnect());
+        e.setRole(dto.getRole());
         return e;
     }
 }

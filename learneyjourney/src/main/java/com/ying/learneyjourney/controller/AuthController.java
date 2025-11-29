@@ -3,6 +3,7 @@ package com.ying.learneyjourney.controller;
 import com.ying.learneyjourney.dto.UserDto;
 import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.service.FirebaseUserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader,
+            HttpServletRequest request
     ) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity
@@ -35,7 +37,7 @@ public class AuthController {
 
         try {
             // 👉 Verify token + create/find user
-            User user = firebaseUserService.authenticateAndSyncUser(idToken);
+            User user = firebaseUserService.authenticateAndSyncUser(idToken, request);
 
             UserDto dto = new UserDto();
             dto.setId(user.getId());
@@ -46,6 +48,7 @@ public class AuthController {
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             e.printStackTrace(); // will show up in Cloud Run logs
+            firebaseUserService.recordLoginAttempts(request, null, false);
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid Firebase token: " + e.getMessage());

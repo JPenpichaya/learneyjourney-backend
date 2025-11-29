@@ -1,16 +1,17 @@
 package com.ying.learneyjourney.entity;
 
+import com.ying.learneyjourney.constaint.EnumUserRoles;
 import com.ying.learneyjourney.untils.Auditable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Entity
-@Data
+@Setter
+@Getter
 @Table(name = "users")
 public class User extends Auditable {
     @Id
@@ -25,4 +26,12 @@ public class User extends Auditable {
 
     @Column(name = "photo_url", length = 1000)
     private String photoUrl;
+
+    @Column(name = "strip_connect", length = 1000)
+    private String stripConnect;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private EnumUserRoles role;
+
 }

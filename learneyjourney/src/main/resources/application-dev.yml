@@ -11,5 +11,11 @@ spring:
 logging:
   level:
     root: info
+stripe:
+  secret-key: sk_test_51PQRvkKe3yMj7QfAWwznaWDfQ7RfVIoTQVHhy5t5H6FPaHebxfpOoVyOoBkrBr0R9PRvjV3rA3zImygRo0JSfsZQ004dGyHAbq
+  publish-key: pk_test_51PQRvkKe3yMj7QfABqXUPaYaZEDdTzU6aXKlnIoXEylX81EDjE3tAVPnmG2YYcveQLREYEeBnXbkT8ZCb7lCf71X00L8yXXqh3
+  success-url: "https://learneyjourney.com/payment/success"
+  cancel-url: "https://learneyjourney.com/payment/cancel"
+  webhook-secret: whsec_ejbkEspoB1LYJkDI96DQQyLsKC07y20V
 app:
   allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173"
