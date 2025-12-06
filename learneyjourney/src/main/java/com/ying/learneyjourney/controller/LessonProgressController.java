@@ -45,8 +45,5 @@ public class LessonProgressController implements MasterController<LessonProgress
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<LessonProgressDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(lessonProgressService.search(criteria, pageable));
-    }
+
 }

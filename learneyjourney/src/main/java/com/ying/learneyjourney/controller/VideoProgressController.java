@@ -45,8 +45,4 @@ public class VideoProgressController implements MasterController<VideoProgressDt
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<VideoProgressDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(videoProgressService.search(criteria, pageable));
-    }
 }

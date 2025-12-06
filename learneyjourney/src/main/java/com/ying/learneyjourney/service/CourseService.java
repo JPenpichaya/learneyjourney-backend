@@ -1,17 +1,17 @@
 package com.ying.learneyjourney.service;
 
+import com.ying.learneyjourney.criteria.CourseCriteria;
 import com.ying.learneyjourney.dto.CourseDto;
 import com.ying.learneyjourney.entity.Course;
 import com.ying.learneyjourney.entity.TutorProfile;
-import com.ying.learneyjourney.master.MasterService;
-import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
+import com.ying.learneyjourney.master.*;
 import com.ying.learneyjourney.repository.CourseRepository;
 import com.ying.learneyjourney.repository.TutorProfileRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,14 +56,11 @@ public class CourseService implements MasterService<CourseDto, UUID> {
 
     @Override
     public void deleteById(UUID uuid) {
-        if(courseRepository.existsById(uuid)) throw new IllegalArgumentException("Course not found");
+        if(!courseRepository.existsById(uuid)) throw new BusinessException("Course not found", "COURSE_NOT_FOUND");
         courseRepository.deleteById(uuid);
     }
-
-    @Override
-    public Page<CourseDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<Course> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-        return courseRepository.findAll(specification, pageable).map(CourseDto::from);
+    public Page<CourseDto> search(PageCriteria<CourseCriteria> condition){
+        Page<Course> all = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
+        return all.map(CourseDto::from);
     }
 }

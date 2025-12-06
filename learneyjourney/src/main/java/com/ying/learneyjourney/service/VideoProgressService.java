@@ -4,7 +4,7 @@ import com.ying.learneyjourney.dto.VideoProgressDto;
 import com.ying.learneyjourney.entity.VideoProgress;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
+
 import com.ying.learneyjourney.repository.VideoProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -57,12 +57,5 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
             throw new RuntimeException("VideoProgress not found");
         }
         videoProgressRepository.deleteById(uuid);
-    }
-
-    @Override
-    public Page<VideoProgressDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<VideoProgress> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-        return videoProgressRepository.findAll(specification, pageable).map(VideoProgressDto::from);
     }
 }

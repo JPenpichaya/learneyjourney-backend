@@ -15,4 +15,4 @@ spring:
       connection-timeout: 20000
       max-lifetime: 1800000
   profiles:
-    active: dev
+    active: local

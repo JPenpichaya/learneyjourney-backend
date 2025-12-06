@@ -6,7 +6,7 @@ import com.ying.learneyjourney.entity.Enrollment;
 import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
+
 import com.ying.learneyjourney.repository.CourseRepository;
 import com.ying.learneyjourney.repository.EnrollmentRepository;
 import com.ying.learneyjourney.repository.UserRepository;
@@ -74,10 +74,5 @@ public class EnrollmentService implements MasterService<EnrollmentDto, UUID> {
         enrollmentRepository.deleteById(uuid);
     }
 
-    @Override
-    public Page<EnrollmentDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<Enrollment> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-        return enrollmentRepository.findAll(specification, pageable).map(EnrollmentDto::from);
-    }
+
 }

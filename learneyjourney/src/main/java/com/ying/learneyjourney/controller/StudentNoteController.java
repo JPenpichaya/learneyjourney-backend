@@ -45,8 +45,5 @@ public class StudentNoteController implements MasterController<StudentNoteDto, U
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<StudentNoteDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(studentNoteService.search(criteria, pageable));
-    }
+
 }

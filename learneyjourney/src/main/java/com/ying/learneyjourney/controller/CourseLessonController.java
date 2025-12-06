@@ -45,8 +45,4 @@ public class CourseLessonController implements MasterController<CourseLessonDto,
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<CourseLessonDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(courseLessonService.search(criteria, pageable));
-    }
 }

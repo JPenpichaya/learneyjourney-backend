@@ -43,8 +43,5 @@ public class UserController implements MasterController<UserDto, String>{
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<UserDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(userService.search(criteria, pageable));
-    }
+
 }

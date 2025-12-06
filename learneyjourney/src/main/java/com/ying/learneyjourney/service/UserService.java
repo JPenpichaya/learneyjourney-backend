@@ -4,7 +4,6 @@ import com.ying.learneyjourney.dto.UserDto;
 import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
 import com.ying.learneyjourney.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -63,12 +62,4 @@ public class UserService implements MasterService<UserDto, String> {
         userRepository.deleteById(s);
     }
 
-    @Override
-    public Page<UserDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<User> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-
-        return userRepository.findAll(specification, pageable)
-                .map(UserDto::from);
-    }
 }

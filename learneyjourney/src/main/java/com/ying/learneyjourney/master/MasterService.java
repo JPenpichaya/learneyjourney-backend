@@ -19,5 +19,4 @@ public interface MasterService<D, ID> {
 
     void deleteById(ID id);
 
-    Page<D> search(List<SearchCriteria> criteriaList, Pageable pageable);
 }

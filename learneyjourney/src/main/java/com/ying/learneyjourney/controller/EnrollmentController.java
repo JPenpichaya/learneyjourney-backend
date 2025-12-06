@@ -45,8 +45,5 @@ public class EnrollmentController implements MasterController<EnrollmentDto, UUI
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<EnrollmentDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(enrollmentService.search(criteria, pageable));
-    }
+
 }

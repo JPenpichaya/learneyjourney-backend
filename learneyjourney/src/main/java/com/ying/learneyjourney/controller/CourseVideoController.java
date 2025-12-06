@@ -45,8 +45,4 @@ public class CourseVideoController implements MasterController<CourseVideoDto, U
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<CourseVideoDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(courseVideoService.search(criteria, pageable));
-    }
 }

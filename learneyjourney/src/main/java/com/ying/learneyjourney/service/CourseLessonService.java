@@ -5,7 +5,7 @@ import com.ying.learneyjourney.entity.Course;
 import com.ying.learneyjourney.entity.CourseLesson;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
+
 import com.ying.learneyjourney.repository.CourseLessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -62,10 +62,4 @@ public class CourseLessonService implements MasterService<CourseLessonDto, UUID>
         courseLessonRepository.deleteById(uuid);
     }
 
-    @Override
-    public Page<CourseLessonDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<CourseLesson> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-        return courseLessonRepository.findAll(specification, pageable).map(CourseLessonDto::from);
-    }
 }

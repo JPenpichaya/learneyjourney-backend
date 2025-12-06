@@ -4,7 +4,7 @@ import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.entity.LessonProgress;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
+
 import com.ying.learneyjourney.repository.LessonProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -56,10 +56,5 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
         lessonProgressRepository.deleteById(uuid);
     }
 
-    @Override
-    public Page<LessonProgressDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<LessonProgress> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-        return lessonProgressRepository.findAll(specification, pageable).map(LessonProgressDto::from);
-    }
+
 }

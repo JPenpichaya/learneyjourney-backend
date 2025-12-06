@@ -13,21 +13,18 @@ import java.util.List;
  */
 public interface MasterController<D, ID> {
 
-    @GetMapping("/get/{id}")
-    ResponseEntity<D> getById(@PathVariable ID id);
+    @PostMapping("/get/{uuid}")
+    ResponseEntity<D> getById(@PathVariable ID uuid);
 
-    @GetMapping
+    @PostMapping
     ResponseEntity<Page<D>> getAll(Pageable pageable);
     @PostMapping("/create")
     ResponseEntity<D> create(@RequestBody D body);
 
-    @PutMapping("/update/{id}")
-    ResponseEntity<D> update(@PathVariable ID id, @RequestBody D body);
+    @PostMapping("/update/{uuid}")
+    ResponseEntity<D> update(@PathVariable ID uuid, @RequestBody D body);
 
-    @DeleteMapping("/delete/{id}")
-    ResponseEntity<Void> delete(@PathVariable ID id);
+    @PostMapping("/delete/{uuid}")
+    ResponseEntity<Void> delete(@PathVariable ID uuid);
 
-    @PostMapping("/search")
-    ResponseEntity<Page<D>> search(@RequestBody List<SearchCriteria> criteria,
-                                   Pageable pageable);
 }

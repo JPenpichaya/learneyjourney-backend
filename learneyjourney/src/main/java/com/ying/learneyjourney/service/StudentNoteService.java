@@ -4,7 +4,7 @@ import com.ying.learneyjourney.dto.StudentNoteDto;
 import com.ying.learneyjourney.entity.StudentNote;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
+
 import com.ying.learneyjourney.repository.StudentNoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -57,12 +57,5 @@ public class StudentNoteService implements MasterService<StudentNoteDto, UUID> {
             throw new IllegalArgumentException("Student Note not found");
         }
         studentNoteRepository.deleteById(uuid);
-    }
-
-    @Override
-    public Page<StudentNoteDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<StudentNote> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-        return studentNoteRepository.findAll(specification, pageable).map(StudentNoteDto::from);
     }
 }

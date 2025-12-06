@@ -5,7 +5,7 @@ import com.ying.learneyjourney.entity.TutorProfile;
 import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
-import com.ying.learneyjourney.master.SearchSpecification;
+
 import com.ying.learneyjourney.repository.TutorProfileRepository;
 import com.ying.learneyjourney.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -62,13 +62,5 @@ public class TutorProfileService implements MasterService<TutorProfilesDto, UUID
     public void deleteById(UUID uuid) {
         if(!tutorProfileRepository.existsById(uuid)) throw new IllegalArgumentException("Tutor Profile not found");
         tutorProfileRepository.deleteById(uuid);
-    }
-
-    @Override
-    public Page<TutorProfilesDto> search(List<SearchCriteria> criteriaList, Pageable pageable) {
-        SearchSpecification<TutorProfile> specification = new SearchSpecification<>();
-        criteriaList.forEach(specification::add);
-        Page<TutorProfile> all = tutorProfileRepository.findAll(specification, pageable);
-        return all.map(TutorProfilesDto::from);
     }
 }

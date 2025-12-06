@@ -46,8 +46,5 @@ public class TutorProfileController implements MasterController<TutorProfilesDto
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<Page<TutorProfilesDto>> search(List<SearchCriteria> criteria, Pageable pageable) {
-        return ResponseEntity.ok(tutorProfileService.search(criteria, pageable));
-    }
+
 }
