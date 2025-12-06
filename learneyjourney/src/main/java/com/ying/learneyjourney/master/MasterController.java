@@ -24,8 +24,6 @@ public interface MasterController<D, ID> {
     @PutMapping("/update/{id}")
     ResponseEntity<D> update(@PathVariable ID id, @RequestBody D body);
 
-    ResponseEntity<UserDto> update(String s, UserDto body);
-
     @DeleteMapping("/delete/{id}")
     ResponseEntity<Void> delete(@PathVariable ID id);
 
