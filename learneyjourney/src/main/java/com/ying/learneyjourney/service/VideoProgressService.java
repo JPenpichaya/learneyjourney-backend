@@ -38,7 +38,7 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
 
     @Override
     public VideoProgressDto getById(UUID uuid) {
-        return videoProgressRepository.findById(uuid).map(VideoProgressDto::from).orElseThrow(() -> new RuntimeException("VideoProgress not found"));;
+        return videoProgressRepository.findById(uuid).map(VideoProgressDto::from).orElseThrow(() -> new RuntimeException("VideoProgress not found"));
     }
 
     @Override

@@ -38,7 +38,7 @@ public class StudentNoteService implements MasterService<StudentNoteDto, UUID> {
 
     @Override
     public StudentNoteDto getById(UUID uuid) {
-        return studentNoteRepository.findById(uuid).map(StudentNoteDto::from).orElseThrow(() -> new IllegalArgumentException("Student Note not found"));;
+        return studentNoteRepository.findById(uuid).map(StudentNoteDto::from).orElseThrow(() -> new IllegalArgumentException("Student Note not found"));
     }
 
     @Override

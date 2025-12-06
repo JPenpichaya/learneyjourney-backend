@@ -7,6 +7,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -17,8 +20,17 @@ public class SecurityConfig {
     public SecurityConfig(FirebaseAuthFilter f) {
         this.filter = f;
     }
+    @Bean
+    public InMemoryUserDetailsManager userDetailsService() {
+        UserDetails admin = User.withUsername("admin")
+                .password("{noop}supersecret") // no encoding
+                .roles("ADMIN")
+                .build();
 
-        @Bean
+        return new InMemoryUserDetailsManager(admin);
+    }
+
+    @Bean
     SecurityFilterChain chain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
