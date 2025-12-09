@@ -13,6 +13,7 @@ public class LessonProgressDto implements Serializable {
     private String userId;
     private EnumLessonProgressStatus status;
     private LocalDateTime completedAt;
+    private UUID courseLessonId;
 
     public static LessonProgressDto from(com.ying.learneyjourney.entity.LessonProgress lp) {
         LessonProgressDto dto = new LessonProgressDto();

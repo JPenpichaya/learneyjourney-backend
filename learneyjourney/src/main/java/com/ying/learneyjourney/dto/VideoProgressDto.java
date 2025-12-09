@@ -2,8 +2,6 @@ package com.ying.learneyjourney.dto;
 
 import com.ying.learneyjourney.constaint.EnumVideoProgressStatus;
 import com.ying.learneyjourney.entity.CourseVideo;
-import com.ying.learneyjourney.entity.User;
-import jakarta.persistence.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,9 +10,9 @@ import java.util.UUID;
 @Data
 public class VideoProgressDto implements Serializable {
     private UUID id;
-    private User user;
+    private String userId;
 
-    private CourseVideo courseVideo;
+    private UUID courseVideoId;
 
     private Integer watchedSeconds;
 
@@ -25,8 +23,8 @@ public class VideoProgressDto implements Serializable {
     public static VideoProgressDto from(com.ying.learneyjourney.entity.VideoProgress vp) {
         VideoProgressDto dto = new VideoProgressDto();
         dto.setId(vp.getId());
-        dto.setUser(vp.getUser());
-        dto.setCourseVideo(vp.getCourseVideo());
+        dto.setUserId(vp.getUser().getId());
+        dto.setCourseVideoId(vp.getCourseVideo().getId());
         dto.setWatchedSeconds(vp.getWatchedSeconds());
         dto.setStatus(vp.getStatus());
         dto.setLastWatchedAt(vp.getLastWatchedAt());

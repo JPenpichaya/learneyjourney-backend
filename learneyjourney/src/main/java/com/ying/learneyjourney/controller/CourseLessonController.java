@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,6 +45,10 @@ public class CourseLessonController implements MasterController<CourseLessonDto,
     public ResponseEntity<Void> delete(UUID uuid) {
         courseLessonService.deleteById(uuid);
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/get-by-course")
+    public ResponseEntity<List<CourseLessonDto>> getListByCourseId(@RequestBody UUID courseId) {
+        return ResponseEntity.ok(courseLessonService.getByCourse(courseId));
     }
 
 }

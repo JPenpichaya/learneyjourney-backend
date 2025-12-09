@@ -10,7 +10,7 @@ import java.util.UUID;
 public class StudentNoteDto implements Serializable {
     private UUID id;
     private String userId;
-    private UUID lessonId;
+    private UUID videoId;
     private String content;
     private String imageUrl;
     private LocalDateTime videoAt;
@@ -19,7 +19,7 @@ public class StudentNoteDto implements Serializable {
         StudentNoteDto dto = new StudentNoteDto();
         dto.setId(note.getId());
         dto.setUserId(note.getUser().getId());
-        dto.setLessonId(note.getCourseVideo().getId());
+        dto.setVideoId(note.getCourseVideo().getId());
         dto.setContent(note.getContent());
         dto.setImageUrl(note.getImageUrl());
         dto.setVideoAt(note.getVideoAt());

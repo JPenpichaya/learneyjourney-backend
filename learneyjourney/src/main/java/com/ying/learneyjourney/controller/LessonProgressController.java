@@ -1,13 +1,17 @@
 package com.ying.learneyjourney.controller;
 
+import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.SearchCriteria;
+import com.ying.learneyjourney.request.UserIdCourseIdRequest;
 import com.ying.learneyjourney.service.LessonProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +48,13 @@ public class LessonProgressController implements MasterController<LessonProgress
         lessonProgressService.deleteById(uuid);
         return ResponseEntity.ok().build();
     }
-
+    @PostMapping("/full-course-progress")
+    public ResponseEntity<FullCourseProgressDto> fullCourseProgress(@RequestBody UserIdCourseIdRequest request) {
+        return ResponseEntity.ok(lessonProgressService.getFullCourseProgress(request.getCourseId(), request.getUserId()));
+    }
+    @PostMapping("/get-by-user-lesson")
+    public ResponseEntity<List<LessonProgressDto>> getByLessonId(@RequestBody UserIdCourseIdRequest request) {
+        return ResponseEntity.ok(lessonProgressService.getByCourseId(request.getUserId(), request.getLessonId()));
+    }
 
 }

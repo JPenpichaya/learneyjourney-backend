@@ -1,10 +1,12 @@
 package com.ying.learneyjourney.service;
 
 import com.ying.learneyjourney.dto.VideoProgressDto;
+import com.ying.learneyjourney.entity.CourseVideo;
 import com.ying.learneyjourney.entity.VideoProgress;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
 
+import com.ying.learneyjourney.repository.CourseVideoRepository;
 import com.ying.learneyjourney.repository.VideoProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VideoProgressService implements MasterService<VideoProgressDto, UUID> {
     private final VideoProgressRepository videoProgressRepository;
+    private final CourseVideoRepository courseVideoRepository;
     @Override
     public VideoProgressDto create(VideoProgressDto dto) {
         VideoProgress entity = VideoProgressDto.toEntity(dto);
@@ -57,5 +60,19 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
             throw new RuntimeException("VideoProgress not found");
         }
         videoProgressRepository.deleteById(uuid);
+    }
+
+    public List<VideoProgressDto> getByLessonId(String userId, UUID lessonId) {
+        List<CourseVideo> videos = courseVideoRepository.findByLessonId(lessonId);
+        List<UUID> ids = videos.stream().map(CourseVideo::getId).toList();
+        List<VideoProgress> videoProgressList = videoProgressRepository.findByUserIdAndVideoIdIn(userId, ids);
+        return videoProgressList.stream().map(this::convertToDto).toList();
+    }
+
+    private VideoProgressDto convertToDto(VideoProgress videoProgress){
+        VideoProgressDto from = VideoProgressDto.from(videoProgress);
+        from.setCourseVideoId(videoProgress.getCourseVideo().getId());
+        from.setUserId(videoProgress.getUser().getId());
+        return from;
     }
 }

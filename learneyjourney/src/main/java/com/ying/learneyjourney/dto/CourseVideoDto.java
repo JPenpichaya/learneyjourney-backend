@@ -8,6 +8,7 @@ import java.util.UUID;
 @Data
 public class CourseVideoDto implements Serializable {
     private UUID id;
+    private UUID lessonId;
     private String title;
     private String url;
     private Integer duration;
@@ -20,6 +21,7 @@ public class CourseVideoDto implements Serializable {
         dto.setUrl(video.getUrl());
         dto.setDuration(video.getDuration());
         dto.setPosition(video.getPosition());
+        dto.setLessonId(video.getCourseLesson() != null ? video.getCourseLesson().getId() : null);
         return dto;
     }
 

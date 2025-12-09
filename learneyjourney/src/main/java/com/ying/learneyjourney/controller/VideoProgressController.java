@@ -3,11 +3,14 @@ package com.ying.learneyjourney.controller;
 import com.ying.learneyjourney.dto.VideoProgressDto;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.SearchCriteria;
+import com.ying.learneyjourney.request.UserIdCourseIdRequest;
 import com.ying.learneyjourney.service.VideoProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,6 +46,10 @@ public class VideoProgressController implements MasterController<VideoProgressDt
     public ResponseEntity<Void> delete(UUID uuid) {
         videoProgressService.deleteById(uuid);
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/get-by-user-lesson")
+    public ResponseEntity<List<VideoProgressDto>> getByLessonId(@RequestBody UserIdCourseIdRequest request) {
+        return ResponseEntity.ok(videoProgressService.getByLessonId(request.getUserId(), request.getLessonId()));
     }
 
 }

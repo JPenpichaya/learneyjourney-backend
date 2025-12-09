@@ -1,9 +1,10 @@
 package com.ying.learneyjourney.service;
 
+import com.ying.learneyjourney.criteria.StudentNoteCriteria;
 import com.ying.learneyjourney.dto.StudentNoteDto;
 import com.ying.learneyjourney.entity.StudentNote;
 import com.ying.learneyjourney.master.MasterService;
-import com.ying.learneyjourney.master.SearchCriteria;
+import com.ying.learneyjourney.master.PageCriteria;
 
 import com.ying.learneyjourney.repository.StudentNoteRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StudentNoteService implements MasterService<StudentNoteDto, UUID> {
     private final StudentNoteRepository studentNoteRepository;
+
     @Override
     public StudentNoteDto create(StudentNoteDto dto) {
         StudentNote entity = StudentNoteDto.toEntity(dto);
@@ -53,9 +55,20 @@ public class StudentNoteService implements MasterService<StudentNoteDto, UUID> {
 
     @Override
     public void deleteById(UUID uuid) {
-        if(!studentNoteRepository.existsById(uuid)) {
+        if (!studentNoteRepository.existsById(uuid)) {
             throw new IllegalArgumentException("Student Note not found");
         }
         studentNoteRepository.deleteById(uuid);
+    }
+
+    public List<StudentNoteDto> getAllList(PageCriteria<StudentNoteCriteria> conditions) {
+        List<StudentNote> all = studentNoteRepository.findAll(conditions.getSpecification());
+        return all.stream().map(this::convertToDto).toList();
+    }
+
+    private StudentNoteDto convertToDto(StudentNote studentNote) {
+        StudentNoteDto from = StudentNoteDto.from(studentNote);
+        from.setVideoId(studentNote.getCourseVideo().getId());
+        return from;
     }
 }

@@ -62,4 +62,15 @@ public class CourseLessonService implements MasterService<CourseLessonDto, UUID>
         courseLessonRepository.deleteById(uuid);
     }
 
+    public List<CourseLessonDto>  getByCourse(UUID courseId){
+        return courseLessonRepository.findByCourse(courseId)
+                .stream().map(e -> addCourseId(e, courseId)).toList();
+    }
+
+    private CourseLessonDto addCourseId(CourseLesson lesson, UUID courseId){
+        CourseLessonDto dto = CourseLessonDto.from(lesson);
+        dto.setCourseId(courseId);
+        return dto;
+    }
+
 }
