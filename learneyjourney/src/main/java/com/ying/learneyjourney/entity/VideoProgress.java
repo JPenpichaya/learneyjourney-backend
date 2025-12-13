@@ -25,6 +25,7 @@ public class VideoProgress {
     private CourseVideo courseVideo;
     @Column(name = "watched_seconds")
     private Integer watchedSeconds;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private EnumVideoProgressStatus status;
     @Column(name = "last_watched_at")

@@ -6,7 +6,9 @@ import com.ying.learneyjourney.entity.StudentNote;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.PageCriteria;
 
+import com.ying.learneyjourney.repository.CourseVideoRepository;
 import com.ying.learneyjourney.repository.StudentNoteRepository;
+import com.ying.learneyjourney.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +21,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StudentNoteService implements MasterService<StudentNoteDto, UUID> {
     private final StudentNoteRepository studentNoteRepository;
+    private final UserRepository userRepository;
+    private final CourseVideoRepository courseVideoRepository;
 
     @Override
     public StudentNoteDto create(StudentNoteDto dto) {
         StudentNote entity = StudentNoteDto.toEntity(dto);
+        userRepository.findById(dto.getUserId()).ifPresent(entity::setUser);
+        courseVideoRepository.findById(dto.getVideoId()).ifPresent(entity::setCourseVideo);
         studentNoteRepository.save(entity);
         dto.setId(entity.getId());
         return dto;

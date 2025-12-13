@@ -54,7 +54,7 @@ public class LessonProgressController implements MasterController<LessonProgress
     }
     @PostMapping("/get-by-user-lesson")
     public ResponseEntity<List<LessonProgressDto>> getByLessonId(@RequestBody UserIdCourseIdRequest request) {
-        return ResponseEntity.ok(lessonProgressService.getByCourseId(request.getUserId(), request.getLessonId()));
+        return ResponseEntity.ok(lessonProgressService.getByCourseId(request.getUserId(), request.getCourseId()));
     }
 
 }

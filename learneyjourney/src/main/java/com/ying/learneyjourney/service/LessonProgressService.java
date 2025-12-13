@@ -10,6 +10,7 @@ import com.ying.learneyjourney.master.SearchCriteria;
 
 import com.ying.learneyjourney.repository.CourseLessonRepository;
 import com.ying.learneyjourney.repository.LessonProgressRepository;
+import com.ying.learneyjourney.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +24,12 @@ import java.util.UUID;
 public class LessonProgressService implements MasterService<LessonProgressDto, UUID> {
     private final LessonProgressRepository lessonProgressRepository;
     private final CourseLessonRepository courseLessonRepository;
+    private final UserRepository userRepository;
     @Override
     public LessonProgressDto create(LessonProgressDto dto) {
         LessonProgress entity = LessonProgressDto.toEntity(dto);
+        userRepository.findById(dto.getUserId()).ifPresent(entity::setUser);
+        courseLessonRepository.findById(dto.getCourseLessonId()).ifPresent(entity::setCourseLesson);
         lessonProgressRepository.save(entity);
         dto.setId(dto.getId());
         return dto;

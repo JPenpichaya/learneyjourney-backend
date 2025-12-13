@@ -7,6 +7,7 @@ import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
 
 import com.ying.learneyjourney.repository.CourseLessonRepository;
+import com.ying.learneyjourney.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,9 +21,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CourseLessonService implements MasterService<CourseLessonDto, UUID> {
     private final CourseLessonRepository courseLessonRepository;
+    private final CourseRepository courseRepository;
     @Override
     public CourseLessonDto create(CourseLessonDto dto) {
         CourseLesson entity = CourseLessonDto.toEntity(dto);
+        courseRepository.findById(dto.getCourseId()).ifPresent(entity::setCourse);
         courseLessonRepository.save(entity);
         dto.setId(entity.getId());
         return dto;

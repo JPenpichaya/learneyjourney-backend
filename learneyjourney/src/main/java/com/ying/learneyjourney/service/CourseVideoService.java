@@ -5,6 +5,7 @@ import com.ying.learneyjourney.entity.CourseVideo;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
 
+import com.ying.learneyjourney.repository.CourseLessonRepository;
 import com.ying.learneyjourney.repository.CourseVideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,9 +19,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CourseVideoService implements MasterService<CourseVideoDto, UUID> {
     private final CourseVideoRepository courseVideoRepository;
+    private final CourseLessonRepository courseLessonRepository;
     @Override
     public CourseVideoDto create(CourseVideoDto dto) {
         CourseVideo entity = CourseVideoDto.toEntity(dto);
+        courseLessonRepository.findById(dto.getLessonId()).ifPresent(entity::setCourseLesson);
         courseVideoRepository.save(entity);
         dto.setId(entity.getId());
         return dto;

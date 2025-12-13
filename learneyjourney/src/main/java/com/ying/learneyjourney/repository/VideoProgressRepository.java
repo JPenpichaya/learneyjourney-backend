@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface VideoProgressRepository extends JpaRepository<VideoProgress, UUID>, JpaSpecificationExecutor<VideoProgress> {
     @Query(
-            value = "SELECT * FROM video_progress WHERE user_id = :userId AND video_id IN (:videoIds)",
+            value = "SELECT * FROM video_progress WHERE user_id = :userId AND course_video_id IN (:videoIds)",
             nativeQuery = true
     )
     List<VideoProgress> findByUserIdAndVideoIdIn(

@@ -23,6 +23,7 @@ public class LessonProgress {
     @OneToOne
     @JoinColumn(name = "course_lesson_id")
     private CourseLesson courseLesson;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private EnumLessonProgressStatus status;
     @Column(name = "completed_at")

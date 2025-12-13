@@ -3,6 +3,7 @@ package com.ying.learneyjourney.controller;
 import com.ying.learneyjourney.dto.CourseVideoDto;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.SearchCriteria;
+import com.ying.learneyjourney.repository.CourseLessonRepository;
 import com.ying.learneyjourney.service.CourseVideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

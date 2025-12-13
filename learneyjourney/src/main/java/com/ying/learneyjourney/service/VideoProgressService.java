@@ -7,6 +7,7 @@ import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
 
 import com.ying.learneyjourney.repository.CourseVideoRepository;
+import com.ying.learneyjourney.repository.UserRepository;
 import com.ying.learneyjourney.repository.VideoProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,9 +22,12 @@ import java.util.UUID;
 public class VideoProgressService implements MasterService<VideoProgressDto, UUID> {
     private final VideoProgressRepository videoProgressRepository;
     private final CourseVideoRepository courseVideoRepository;
+    private final UserRepository userRepository;
     @Override
     public VideoProgressDto create(VideoProgressDto dto) {
         VideoProgress entity = VideoProgressDto.toEntity(dto);
+        userRepository.findById(dto.getUserId()).ifPresent(entity::setUser);
+        courseVideoRepository.findById(dto.getCourseVideoId()).ifPresent(entity::setCourseVideo);
         videoProgressRepository.save(entity);
         dto.setId(entity.getId());
         return dto;

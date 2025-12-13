@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.entity;
 
+import com.ying.learneyjourney.constaint.EnumCourseBadge;
 import com.ying.learneyjourney.untils.Auditable;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,4 +24,13 @@ public class Course extends Auditable {
     @ManyToOne
     @JoinColumn(name = "tutor_profile_id")
     private TutorProfile tutorProfile;
+    @Column(name = "image_url")
+    private String imageUrl;
+    @Column(name = "is_live")
+    private Boolean isLive;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "badge")
+    private EnumCourseBadge badge;
+    @Column(name = "price_thb")
+    private Double priceThb;
 }
