@@ -33,4 +33,6 @@ public class Course extends Auditable {
     private EnumCourseBadge badge;
     @Column(name = "price_thb")
     private Double priceThb;
+    @Column(name = "price_id")
+    private String priceId;
 }

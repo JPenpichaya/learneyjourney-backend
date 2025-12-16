@@ -24,6 +24,7 @@ public class Enrollment extends Auditable {
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private EnumEnrollmentStatus status;
     @Column(name = "progress")

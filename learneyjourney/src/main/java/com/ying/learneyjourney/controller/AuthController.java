@@ -33,6 +33,7 @@ public class AuthController {
                     .body("Missing or invalid Authorization header");
         }
 
+
         String idToken = authHeader.substring(7);
 
         try {

@@ -16,6 +16,7 @@ public class CourseDto implements Serializable {
     private Boolean isLive;
     private EnumCourseBadge badge;
     private Double priceThb;
+    private String priceId;
 
     public static CourseDto from(com.ying.learneyjourney.entity.Course course) {
         CourseDto dto = new CourseDto();
@@ -27,6 +28,7 @@ public class CourseDto implements Serializable {
         dto.setIsLive(course.getIsLive());
         dto.setBadge(course.getBadge());
         dto.setPriceThb(course.getPriceThb());
+        dto.setPriceId(course.getPriceId());
         return dto;
     }
 
@@ -40,6 +42,7 @@ public class CourseDto implements Serializable {
         course.setIsLive(dto.getIsLive());
         course.setBadge(dto.getBadge());
         course.setPriceThb(dto.getPriceThb());
+        course.setPriceId(dto.getPriceId());
         return course;
     }
 }

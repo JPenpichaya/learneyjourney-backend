@@ -1,13 +1,16 @@
 package com.ying.learneyjourney.controller;
+import com.google.firebase.auth.FirebaseToken;
 import com.stripe.model.Price;
 import com.stripe.model.PriceCollection;
 import com.stripe.model.Product;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.request.CreateSessionRequest;
 import com.ying.learneyjourney.request.LineItemRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,11 +32,17 @@ public class CheckoutController {
 
     @PostMapping("/create-session")
     public ResponseEntity<Map<String, Object>> createCheckoutSession(
-            @Valid @RequestBody CreateSessionRequest request) {
+            @Valid @RequestBody CreateSessionRequest request,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new IllegalArgumentException("At least one item is required");
         }
+
+        FirebaseToken decoded = FirebaseAuthUtil.verify(authHeader);
+
+        String userId = decoded.getUid(); // ✅ THIS IS YOUR USER ID
+        String email = decoded.getEmail(); // optional
 
         try {
             List<SessionCreateParams.LineItem> lineItems = new ArrayList<>();
@@ -86,7 +95,7 @@ public class CheckoutController {
                     .setSuccessUrl(successUrl)   // use server-side config
                     .setCancelUrl(cancelUrl)     // use server-side config
                     .addAllLineItem(lineItems)
-                    .putMetadata("userId", request.getUserId())        // you'd add this field to your request DTO
+                    .putMetadata("userId", userId)        // you'd add this field to your request DTO
                     .putMetadata("courseId", request.getCourseId().toString());
 
 //            if(lineItems.stream().anyMatch(li -> li.getPrice().equals("price_1SHfYuP3M4EMXc3By7FzJBg6"))){

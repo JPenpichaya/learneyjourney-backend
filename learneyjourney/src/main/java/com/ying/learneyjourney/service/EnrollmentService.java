@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.service;
 
+import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.dto.EnrollmentDto;
 import com.ying.learneyjourney.entity.Course;
 import com.ying.learneyjourney.entity.Enrollment;
@@ -11,6 +12,7 @@ import com.ying.learneyjourney.repository.CourseRepository;
 import com.ying.learneyjourney.repository.EnrollmentRepository;
 import com.ying.learneyjourney.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EnrollmentService implements MasterService<EnrollmentDto, UUID> {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final FirebaseAuthUtil firebaseAuthUtil;
     @Override
     public EnrollmentDto create(EnrollmentDto dto) {
         User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -74,5 +77,9 @@ public class EnrollmentService implements MasterService<EnrollmentDto, UUID> {
         enrollmentRepository.deleteById(uuid);
     }
 
+    public List<EnrollmentDto> getEnrollmentsByUserId(String token) throws Exception {
+        String userIdFromToken = firebaseAuthUtil.getUserIdFromToken(token);
+        return enrollmentRepository.findBy_UserId(userIdFromToken).stream().map(EnrollmentDto::from).toList();
+    }
 
 }

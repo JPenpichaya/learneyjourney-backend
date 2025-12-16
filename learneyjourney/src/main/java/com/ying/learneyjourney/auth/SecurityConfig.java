@@ -44,8 +44,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/public/**","/health", "/dbcheck", "/api/checkout/create-session" //TODO make session authen
                                 , "/api/stripe/webhook", "/api/stripe/webhook-test").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/**").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/**", "/api/**", "/token").permitAll()
+                        .requestMatchers("/**") .hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);

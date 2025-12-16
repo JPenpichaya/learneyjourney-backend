@@ -63,4 +63,5 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         Page<Course> all = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
         return all.map(CourseDto::from);
     }
+
 }

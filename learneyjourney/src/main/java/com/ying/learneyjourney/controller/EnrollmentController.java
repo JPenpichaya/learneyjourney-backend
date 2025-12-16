@@ -8,7 +8,10 @@ import com.ying.learneyjourney.service.EnrollmentService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +47,9 @@ public class EnrollmentController implements MasterController<EnrollmentDto, UUI
         enrollmentService.deleteById(uuid);
         return ResponseEntity.ok().build();
     }
-
-
+    @PostMapping("/by-user-id")
+    public ResponseEntity<List<EnrollmentDto>> getByUserId(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String idToken = authHeader.substring(7);
+        return ResponseEntity.ok(enrollmentService.getEnrollmentsByUserId(idToken));
+    }
 }

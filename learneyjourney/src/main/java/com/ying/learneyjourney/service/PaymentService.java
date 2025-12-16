@@ -1,20 +1,22 @@
 package com.ying.learneyjourney.service;
 
 import com.stripe.model.checkout.Session;
+import com.ying.learneyjourney.constaint.EnumEnrollmentStatus;
+import com.ying.learneyjourney.dto.EnrollmentDto;
 import com.ying.learneyjourney.entity.Purchase;
 import com.ying.learneyjourney.repository.PurchaseRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
 
     private final PurchaseRepository purchaseRepository;
-
-    public PaymentService(PurchaseRepository purchaseRepository) {
-        this.purchaseRepository = purchaseRepository;
-    }
+    private final EnrollmentService enrollmentService;
 
     public void handleCheckoutSessionCompleted(Session session) {
         String sessionId = session.getId();
@@ -75,6 +77,14 @@ public class PaymentService {
         purchase.setPurchasedAt(OffsetDateTime.now());
 
         purchaseRepository.save(purchase);
+
+        EnrollmentDto enrollmentDto = new EnrollmentDto();
+        enrollmentDto.setUserId(userId);
+        enrollmentDto.setCourseId(UUID.fromString(courseId));
+        enrollmentDto.setProgress(0);
+        enrollmentDto.setStatus(EnumEnrollmentStatus.NOT_START);
+
+        enrollmentService.create(enrollmentDto);
 
         System.out.println("✅ Purchase saved!");
     }
