@@ -2,7 +2,7 @@ server:
   port: 8080
 
 app:
-  allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173"
+  allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,https://learney-frontend-dev-24285490035.asia-southeast1.run.app"
 spring:
   datasource:
     url: "jdbc:postgresql://34.142.188.77:5432/learneyjourney-dev?sslmode=require"
