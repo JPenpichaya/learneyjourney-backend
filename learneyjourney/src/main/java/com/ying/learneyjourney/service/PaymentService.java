@@ -56,9 +56,15 @@ public class PaymentService {
             String userId,
             String courseId,
             Long amount,
-            String currency
+            String currency,
+            String eventId
     ) {
         System.out.println("💾 Saving purchase for user " + userId + " course " + courseId);
+
+        if(purchaseRepository.exist_StripEvenId(eventId)){
+            System.out.println("⚠️ Purchase already exists for event " + eventId);
+            return;
+        }
 
         // Example idempotency: don't double-insert same session
         if (purchaseRepository.findByStripeSessionId(stripeSessionId).isPresent()) {
