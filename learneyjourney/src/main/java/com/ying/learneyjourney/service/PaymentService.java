@@ -81,6 +81,7 @@ public class PaymentService {
         purchase.setCurrency(currency);
         purchase.setStatus("PAID");
         purchase.setPurchasedAt(OffsetDateTime.now());
+        purchase.setStripeEventId(eventId);
 
         purchaseRepository.save(purchase);
 
