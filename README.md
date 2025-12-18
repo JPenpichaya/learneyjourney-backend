@@ -18,6 +18,7 @@ Learney Journey allows students to browse courses, purchase access, enroll secur
 ---
 
 ## 🧱 Architecture Overview
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/c3eb1b80-35eb-4f54-b5fb-483a32d06a27" />
 
 **High-level architecture:**
 - **Frontend:** React (consumes REST APIs)
