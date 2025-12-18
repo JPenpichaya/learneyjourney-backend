@@ -1,4 +1,6 @@
 # Learney Journey
+🔗 **Live Demo:** https://learneyjourney.com  
+💻 **GitHub Repository:** https://github.com/JPenpichaya/learneyjourney-backend
 
 A **production-ready online course marketplace and live learning platform** built to demonstrate real-world backend engineering skills, including payments, authentication, cloud deployment, and system reliability.
 
