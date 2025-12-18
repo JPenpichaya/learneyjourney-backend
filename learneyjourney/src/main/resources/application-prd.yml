@@ -1,15 +1,32 @@
 spring:
-  url: "jdbc:postgresql://34.142.188.77:5432/learneyjourney-dev?sslmode=require"
-  username: "postgres"   # e.g. postgres
-  password: ">-6[T;]rz%cxgp-T"
+  url: ${DATABASE_URL}
+  username: ${DATABASE_USERNAME}   # e.g. postgres
+  password: ${DATABASE_PASSWORD}
   hikari:
     maximum-pool-size: 5
     minimum-idle: 1
     idle-timeout: 60000
     connection-timeout: 20000
     max-lifetime: 1800000
+  mail:
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 logging:
   level:
     root: info
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  publish-key: ${STRIPE_PUBLISHABLE_KEY}
+  success-url: "https://learneyjourney.com/payment/success"
+  cancel-url: "https://learneyjourney.com/payment/cancel"
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
 app:
   allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173"

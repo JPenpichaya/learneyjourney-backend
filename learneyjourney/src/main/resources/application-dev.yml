@@ -1,18 +1,20 @@
 spring:
-  url: "jdbc:postgresql://34.142.188.77:5432/learneyjourney-dev?sslmode=require"
-  username: "postgres"   # e.g. postgres
-  password: ">-6[T;]rz%cxgp-T"
-  hikari:
-    maximum-pool-size: 5
-    minimum-idle: 1
-    idle-timeout: 60000
-    connection-timeout: 20000
-    max-lifetime: 1800000
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}   # e.g. postgres
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 60000
+      connection-timeout: 20000
+      max-lifetime: 1800000
   mail:
-    host: smtp.hostinger.com
-    port: 465
-    username: no-reply@learneyjourney.com
-    password: LearneyJourney=2025
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -23,10 +25,10 @@ logging:
   level:
     root: info
 stripe:
-  secret-key: sk_test_51PQRvkKe3yMj7QfAWwznaWDfQ7RfVIoTQVHhy5t5H6FPaHebxfpOoVyOoBkrBr0R9PRvjV3rA3zImygRo0JSfsZQ004dGyHAbq
-  publish-key: pk_test_51PQRvkKe3yMj7QfABqXUPaYaZEDdTzU6aXKlnIoXEylX81EDjE3tAVPnmG2YYcveQLREYEeBnXbkT8ZCb7lCf71X00L8yXXqh3
+  secret-key: ${STRIPE_SECRET_KEY}
+  publish-key: ${STRIPE_PUBLISHABLE_KEY}
   success-url: "https://learneyjourney.com/payment/success"
   cancel-url: "https://learneyjourney.com/payment/cancel"
-  webhook-secret: whsec_ejbkEspoB1LYJkDI96DQQyLsKC07y20V
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
 app:
   allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173"
