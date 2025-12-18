@@ -95,17 +95,20 @@ Returns service status and readiness information.
 
 ---
 
-## 🔁 Stripe Webhook Safety
+## 🔁 Stripe Webhook Idempotency & Safety
 
-To ensure reliability:
-- Stripe webhook signatures are verified
-- Each event ID is stored and checked
-- Duplicate events are ignored (idempotency)
+Stripe webhooks may be delivered multiple times due to retries, network issues, or partial failures.
+To ensure payment processing is reliable and does not create duplicate enrollments, webhook handling is designed to be **idempotent**.
 
-This prevents:
-- Duplicate enrollments
-- Payment race conditions
-- Retry-related data corruption
+Each Stripe webhook event ID is stored and enforced with a database-level unique constraint.
+When a webhook is received:
+
+1. The event signature is verified using Stripe’s signing secret
+2. The event ID is checked and recorded atomically in the database
+3. If the event has already been processed, it is safely ignored
+4. If the event is new, payment and enrollment logic is executed
+
+This approach guarantees **exactly-once processing** even under concurrent or repeated webhook deliveries.
 
 ---
 
