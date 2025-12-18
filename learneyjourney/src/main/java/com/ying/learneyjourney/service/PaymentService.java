@@ -5,7 +5,9 @@ import com.ying.learneyjourney.constaint.EnumEnrollmentStatus;
 import com.ying.learneyjourney.dto.EnrollmentDto;
 import com.ying.learneyjourney.entity.Purchase;
 import com.ying.learneyjourney.repository.PurchaseRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -50,6 +52,7 @@ public class PaymentService {
         // - Send confirmation email
         // - Log analytics
     }
+    @Transactional
     public void saveCoursePurchaseFromWebhook(
             String stripeSessionId,
             String paymentIntentId,
