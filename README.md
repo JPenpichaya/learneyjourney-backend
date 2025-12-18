@@ -162,7 +162,7 @@ It is built to reflect how production systems are designed, deployed, and mainta
 ---
 
 ## 👤 Author
-**Jay (Penpichaya Suttimark)**  
+**Pearl (Penpichaya Suttimark)**  
 Backend Engineer — Java / Spring Boot  
 Cloud, Payments, and API Design
 
