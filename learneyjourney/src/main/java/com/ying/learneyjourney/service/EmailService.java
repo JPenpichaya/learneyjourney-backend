@@ -29,6 +29,7 @@ public class EmailService {
                 .orElseThrow(() -> new IllegalArgumentException("Course not found"));
 
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("no-reply@learneyjourney.com");
         message.setTo(user.getEmail());
         message.setSubject("You’re enrolled in " + course.getTitle());
         message.setText(
@@ -39,6 +40,18 @@ public class EmailService {
                         "You can now access the course from your dashboard.\n\n" +
                         "Happy learning!\n" +
                         "Learney Journey Team"
+        );
+
+        mailSender.send(message);
+    }
+
+    public void sendTestEmail(String userEmail){
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("no-reply@learneyjourney.com");
+        message.setTo(userEmail);
+        message.setSubject("Test email");
+        message.setText(
+                "Hi this is a test email"
         );
 
         mailSender.send(message);

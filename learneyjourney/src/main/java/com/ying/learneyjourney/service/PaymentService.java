@@ -19,6 +19,7 @@ public class PaymentService {
 
     private final PurchaseRepository purchaseRepository;
     private final EnrollmentService enrollmentService;
+    private final PostEnrollmentAsyncService postEnrollmentAsyncService;
 
     public void handleCheckoutSessionCompleted(Session session) {
         String sessionId = session.getId();
@@ -97,5 +98,7 @@ public class PaymentService {
         enrollmentService.create(enrollmentDto);
 
         System.out.println("✅ Purchase saved!");
+
+        postEnrollmentAsyncService.sendingEmailAfterEnrolled(userId, UUID.fromString(courseId), stripeSessionId);
     }
 }

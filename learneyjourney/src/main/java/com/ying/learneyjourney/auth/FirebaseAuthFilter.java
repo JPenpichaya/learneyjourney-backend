@@ -19,6 +19,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(jakarta.servlet.http.HttpServletRequest req) {
         return req.getRequestURI().startsWith("/api/auth/login")
+                || req.getRequestURI().startsWith("/api/stripe/webhook")
                 || "OPTIONS".equalsIgnoreCase(req.getMethod())
                 || req.getRequestURI().startsWith("/public")
                 || "/health".equals(req.getRequestURI())

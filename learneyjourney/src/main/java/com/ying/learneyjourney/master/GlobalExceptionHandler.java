@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.builder()
                 .success(false)
                 .error("SERVER_ERROR")
-                .message("Something went wrong. Please try again later.")
+                .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
                 .path(request.getRequestURI())
                 .build();

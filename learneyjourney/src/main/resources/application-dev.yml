@@ -1,9 +1,11 @@
 spring:
+  config:
+    import: "optional:file:${user.dir}/.env.dev[.properties]"
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}   # e.g. postgres
-    password: ${DATABASE_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: postgres   # e.g. postgres
+    password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
       maximum-pool-size: 5
       minimum-idle: 1
@@ -11,16 +13,18 @@ spring:
       connection-timeout: 20000
       max-lifetime: 1800000
   mail:
-    host: ${EMAIL_HOST}
-    port: ${EMAIL_PORT}
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
+    host: smtp.hostinger.com
+    port: 465
+    username: no-reply@learneyjourney.com
+    password: ${SPRING_EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
-          starttls:
+          ssl:
             enable: true
+          starttls:
+            enable: false
 logging:
   level:
     root: info
@@ -31,4 +35,4 @@ stripe:
   cancel-url: "https://learneyjourney.com/payment/cancel"
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
 app:
-  allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173"
+  allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173, https://learney-frontend-dev-24285490035.asia-southeast1.run.app"
