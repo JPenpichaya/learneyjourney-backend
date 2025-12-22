@@ -1,12 +1,12 @@
 package com.ying.learneyjourney.service;
 
 import com.ying.learneyjourney.criteria.CourseCriteria;
+import com.ying.learneyjourney.dto.CourseDetailDto;
 import com.ying.learneyjourney.dto.CourseDto;
 import com.ying.learneyjourney.entity.Course;
 import com.ying.learneyjourney.entity.TutorProfile;
 import com.ying.learneyjourney.master.*;
-import com.ying.learneyjourney.repository.CourseRepository;
-import com.ying.learneyjourney.repository.TutorProfileRepository;
+import com.ying.learneyjourney.repository.*;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +20,10 @@ import java.util.UUID;
 public class CourseService implements MasterService<CourseDto, UUID> {
     private final CourseRepository courseRepository;
     private final TutorProfileRepository tutorProfileRepository;
+    private final CourseReviewRepository courseReviewRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final CourseLessonRepository courseLessonRepository;
+    private final CourseVideoRepository courseVideoRepository;
     @Override
     public CourseDto create(CourseDto dto) {
         TutorProfile profile = tutorProfileRepository.findById(dto.getTutorProfileId()).orElseThrow(() -> new IllegalArgumentException("Tutor Profile not found"));
@@ -62,6 +66,22 @@ public class CourseService implements MasterService<CourseDto, UUID> {
     public Page<CourseDto> search(PageCriteria<CourseCriteria> condition){
         Page<Course> all = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
         return all.map(CourseDto::from);
+    }
+
+    public CourseDetailDto getCourseDetailById(UUID courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new IllegalArgumentException("Course not found"));
+        Double averageRating = courseReviewRepository.getAverageRatingByCourseId(courseId);
+        Long totalEnrollments = enrollmentRepository.countByCourseId(courseId);
+        Long totalLessons = courseLessonRepository.countByCourseId(courseId);
+        CourseVideoRepository.DurationDisplayRow durationDisplay = courseVideoRepository.getCourseDurationDisplay(courseId);
+        String totalDuration = durationDisplay != null ? String.format("%s %s", durationDisplay.getDisplayValue(), durationDisplay.getDisplayUnit()) : "0 mins";
+        CourseDetailDto detailDto = new CourseDetailDto();
+        detailDto.setId(course.getId());
+        detailDto.setTotalStudents(totalEnrollments);
+        detailDto.setTotalLessons(totalLessons);
+        detailDto.setRating(averageRating);
+        detailDto.setTotalDuration(totalDuration);
+        return detailDto;
     }
 
 }

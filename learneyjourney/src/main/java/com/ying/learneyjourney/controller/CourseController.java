@@ -1,6 +1,7 @@
 package com.ying.learneyjourney.controller;
 
 import com.ying.learneyjourney.criteria.CourseCriteria;
+import com.ying.learneyjourney.dto.CourseDetailDto;
 import com.ying.learneyjourney.dto.CourseDto;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.PageCriteria;
@@ -10,10 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,5 +48,11 @@ public class CourseController implements MasterController<CourseDto, UUID> {
     @PostMapping("/search")
     public ResponseEntity<Page<CourseDto>> search(@RequestBody PageCriteria<CourseCriteria> conditions) {
         return ResponseEntity.ok(courseService.search(conditions));
+    }
+
+    @PostMapping("/details/{courseId}")
+    public ResponseEntity<CourseDetailDto> getCourseDetails(@PathVariable  UUID courseId) {
+        CourseDetailDto courseDetail = courseService.getCourseDetailById(courseId);
+        return ResponseEntity.ok(courseDetail);
     }
 }

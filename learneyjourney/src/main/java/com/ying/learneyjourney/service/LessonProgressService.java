@@ -3,12 +3,15 @@ package com.ying.learneyjourney.service;
 import com.ying.learneyjourney.constaint.EnumLessonProgressStatus;
 import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
+import com.ying.learneyjourney.dto.StudentLessonProgressDto;
 import com.ying.learneyjourney.entity.CourseLesson;
+import com.ying.learneyjourney.entity.CourseVideo;
 import com.ying.learneyjourney.entity.LessonProgress;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
 
 import com.ying.learneyjourney.repository.CourseLessonRepository;
+import com.ying.learneyjourney.repository.CourseVideoRepository;
 import com.ying.learneyjourney.repository.LessonProgressRepository;
 import com.ying.learneyjourney.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +29,7 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
     private final LessonProgressRepository lessonProgressRepository;
     private final CourseLessonRepository courseLessonRepository;
     private final UserRepository userRepository;
+    private final CourseVideoRepository courseVideoRepository;
     @Override
     public LessonProgressDto create(LessonProgressDto dto) {
         LessonProgress entity = LessonProgressDto.toEntity(dto);
@@ -94,4 +99,27 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
         return dto;
     }
 
+    public List<StudentLessonProgressDto> getStudentLessonProgress(UUID courseId, String userId){
+        List<CourseLesson> lessons = courseLessonRepository.findByCourse(courseId);
+        List<UUID> ids = lessons.stream().map(CourseLesson::getId).toList();
+        List<LessonProgress> progresses = lessonProgressRepository.findByCourseLessonIdInAndUserId(ids, userId);
+        List<CourseVideo> allVideos = courseVideoRepository.findByLessonIds(ids);
+        List<StudentLessonProgressDto> list = new ArrayList<>();
+        for(int i = 0; i < lessons.size(); i++){
+            LessonProgress progress = progresses.get(i);
+            CourseLesson lesson = lessons.get(i);
+            CourseVideo video = allVideos.get(i);
+            StudentLessonProgressDto dto = new StudentLessonProgressDto();
+            dto.setLessonId(lesson.getId());
+            dto.setTitle(lesson.getTitle());
+            dto.setDescription(lesson.getDescription());
+            dto.setPosition(lesson.getPosition());
+            dto.setUrl(video.getUrl());
+            dto.setStatus(progress.getStatus());
+            dto.setDuration(video.getDuration());
+            dto.setCompletedAt(progress.getCompletedAt());
+            list.add(dto);
+        }
+        return list;
+    }
 }

@@ -7,6 +7,7 @@ import com.ying.learneyjourney.entity.Purchase;
 import com.ying.learneyjourney.repository.PurchaseRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentService {
 
     private final PurchaseRepository purchaseRepository;
@@ -55,7 +57,7 @@ public class PaymentService {
     }
     @Transactional
     public void saveCoursePurchaseFromWebhook(
-            String stripeSessionId,
+            String sessionId,
             String paymentIntentId,
             String userId,
             String courseId,
@@ -65,19 +67,31 @@ public class PaymentService {
     ) {
         System.out.println("💾 Saving purchase for user " + userId + " course " + courseId);
 
+        log.info("""
+                💰 Payment completed
+                sessionId={}
+                paymentIntentId={}
+                userId={}
+                courseId={}
+                amount={}
+                currency={}
+                """,
+                sessionId, paymentIntentId, userId, courseId, amount, currency
+        );
+
         if(purchaseRepository.exist_StripEvenId(eventId)){
             System.out.println("⚠️ Purchase already exists for event " + eventId);
             return;
         }
 
         // Example idempotency: don't double-insert same session
-        if (purchaseRepository.findByStripeSessionId(stripeSessionId).isPresent()) {
-            System.out.println("⚠️ Purchase already exists for session " + stripeSessionId);
+        if (purchaseRepository.findByStripeSessionId(sessionId).isPresent()) {
+            System.out.println("⚠️ Purchase already exists for session " + sessionId);
             return;
         }
 
         Purchase purchase = new Purchase();
-        purchase.setStripeSessionId(stripeSessionId);
+        purchase.setStripeSessionId(sessionId);
         purchase.setStripePaymentIntentId(paymentIntentId);
         purchase.setUserId(userId);
         purchase.setCourseId(courseId);
@@ -99,6 +113,7 @@ public class PaymentService {
 
         System.out.println("✅ Purchase saved!");
 
-        postEnrollmentAsyncService.sendingEmailAfterEnrolled(userId, UUID.fromString(courseId), stripeSessionId);
+        postEnrollmentAsyncService.sendingEmailAfterEnrolled(userId, UUID.fromString(courseId), sessionId);
     }
+
 }

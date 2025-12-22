@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID>, JpaSpecificationExecutor<Enrollment> {
     @Query("select e from Enrollment e where e.user.id = ?1")
     List<Enrollment> findBy_UserId(String id);
+
+    @Query("select count(e) from Enrollment e where e.course.id = ?1")
+    long countByCourseId(UUID id);
 }

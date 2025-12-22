@@ -2,6 +2,7 @@ package com.ying.learneyjourney.controller;
 
 import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
+import com.ying.learneyjourney.dto.StudentLessonProgressDto;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.SearchCriteria;
 import com.ying.learneyjourney.request.UserIdCourseIdRequest;
@@ -55,6 +56,10 @@ public class LessonProgressController implements MasterController<LessonProgress
     @PostMapping("/get-by-user-lesson")
     public ResponseEntity<List<LessonProgressDto>> getByLessonId(@RequestBody UserIdCourseIdRequest request) {
         return ResponseEntity.ok(lessonProgressService.getByCourseId(request.getUserId(), request.getCourseId()));
+    }
+    @PostMapping("/get-all-details")
+    public ResponseEntity<List<StudentLessonProgressDto>> getStudentLessonProgress(@RequestBody UserIdCourseIdRequest request) {
+        return ResponseEntity.ok(lessonProgressService.getStudentLessonProgress(request.getCourseId(), request.getUserId()));
     }
 
 }

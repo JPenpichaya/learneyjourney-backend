@@ -12,6 +12,8 @@ import java.util.List;
 @Getter
 @Setter
 public class CourseCriteria extends SearchCriteria<Course> {
+    private String classType;
+    private List<String> badgeType;
     @Override
     public Specification<Course> getSpecification() {
         return (root, query, cb) -> {
@@ -22,6 +24,20 @@ public class CourseCriteria extends SearchCriteria<Course> {
                 predicates.add(
                         cb.like(cb.lower(root.get("title")), like)
                 );
+            }
+
+            if (classType != null && !classType.isBlank()) {
+                switch (classType) {
+                    case "live" -> predicates.add(cb.equal(root.get("isLive"), true));
+                    case "video" -> predicates.add(cb.equal(root.get("isLive"), false));
+                    case "all" -> {
+                    }
+                    // do nothing
+                }
+            }
+
+            if (badgeType != null && !badgeType.isEmpty()) {
+                predicates.add(root.get("badge").in(badgeType));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
