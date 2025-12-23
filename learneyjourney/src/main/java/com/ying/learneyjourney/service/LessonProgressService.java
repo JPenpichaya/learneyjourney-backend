@@ -1,19 +1,20 @@
 package com.ying.learneyjourney.service;
 
+import com.ying.learneyjourney.Util.TimeManagement;
 import com.ying.learneyjourney.constaint.EnumLessonProgressStatus;
+import com.ying.learneyjourney.constaint.EnumVideoProgressStatus;
 import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.dto.StudentLessonProgressDto;
+import com.ying.learneyjourney.dto.VideoProgressRowDto;
 import com.ying.learneyjourney.entity.CourseLesson;
 import com.ying.learneyjourney.entity.CourseVideo;
 import com.ying.learneyjourney.entity.LessonProgress;
+import com.ying.learneyjourney.entity.VideoProgress;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
 
-import com.ying.learneyjourney.repository.CourseLessonRepository;
-import com.ying.learneyjourney.repository.CourseVideoRepository;
-import com.ying.learneyjourney.repository.LessonProgressRepository;
-import com.ying.learneyjourney.repository.UserRepository;
+import com.ying.learneyjourney.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,6 +32,7 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
     private final CourseLessonRepository courseLessonRepository;
     private final UserRepository userRepository;
     private final CourseVideoRepository courseVideoRepository;
+    private final VideoProgressRepository videoProgressRepository;
     @Override
     public LessonProgressDto create(LessonProgressDto dto) {
         LessonProgress entity = LessonProgressDto.toEntity(dto);
@@ -101,23 +104,33 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
 
     public List<StudentLessonProgressDto> getStudentLessonProgress(UUID courseId, String userId){
         List<CourseLesson> lessons = courseLessonRepository.findByCourse(courseId);
-        List<UUID> ids = lessons.stream().map(CourseLesson::getId).toList();
-        List<LessonProgress> progresses = lessonProgressRepository.findByCourseLessonIdInAndUserId(ids, userId);
-        List<CourseVideo> allVideos = courseVideoRepository.findByLessonIds(ids);
+        List<LessonProgress> lessonProgresses = lessonProgressRepository.findByCourseLessonIdInAndUserId(
+                lessons.stream().map(CourseLesson::getId).toList(),
+                userId);
         List<StudentLessonProgressDto> list = new ArrayList<>();
-        for(int i = 0; i < lessons.size(); i++){
-            LessonProgress progress = progresses.get(i);
-            CourseLesson lesson = lessons.get(i);
-            CourseVideo video = allVideos.get(i);
+        for (CourseLesson lesson : lessons) {
             StudentLessonProgressDto dto = new StudentLessonProgressDto();
+            Optional<LessonProgress> lessonProgress = lessonProgresses.stream().filter(lp -> lp.getCourseLesson().getId().equals(lesson.getId())).findFirst();
+            lessonProgress.ifPresent(e -> dto.setStatus(e.getStatus()));
+            List<VideoProgressRepository.VideoProgressRow> videoProgressRows = videoProgressRepository.findVideoProgressRows(userId, lesson.getId());
+            List<VideoProgressRowDto> videoDtos = new ArrayList<>();
+            for (VideoProgressRepository.VideoProgressRow row : videoProgressRows) {
+                VideoProgressRowDto videoDto = new VideoProgressRowDto();
+                videoDto.setId(row.getId());
+                videoDto.setDescription(row.getDescription());
+                videoDto.setStatus(EnumVideoProgressStatus.valueOf(row.getStatus()));
+                videoDto.setCompletedAt(row.getCompletedAt());
+                videoDto.setTitle(row.getTitle());
+                videoDto.setUrl(row.getUrl());
+                videoDto.setDuration(TimeManagement.formatSecondsToHMS(row.getDuration()));
+                videoDto.setPosition(row.getPosition());
+                videoDtos.add(videoDto);
+            }
+            dto.setPosition(lesson.getPosition());
             dto.setLessonId(lesson.getId());
             dto.setTitle(lesson.getTitle());
-            dto.setDescription(lesson.getDescription());
-            dto.setPosition(lesson.getPosition());
-            dto.setUrl(video.getUrl());
-            dto.setStatus(progress.getStatus());
-            dto.setDuration(video.getDuration());
-            dto.setCompletedAt(progress.getCompletedAt());
+            dto.setVideos(videoDtos);
+
             list.add(dto);
         }
         return list;

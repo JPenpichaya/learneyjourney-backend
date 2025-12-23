@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ying.learneyjourney.constaint.EnumLessonProgressStatus;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 @Data
 public class LessonProgressDto implements Serializable {
     private UUID id;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String userId;
     private EnumLessonProgressStatus status;
     private LocalDateTime completedAt;
