@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.controller;
 
+import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.dto.StudentLessonProgressDto;
@@ -10,11 +11,9 @@ import com.ying.learneyjourney.service.LessonProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LessonProgressController implements MasterController<LessonProgressDto, UUID> {
     private final LessonProgressService lessonProgressService;
+    private final FirebaseAuthUtil firebaseAuthUtil;
     @Override
     public ResponseEntity<LessonProgressDto> getById(UUID uuid) {
         return ResponseEntity.ok(lessonProgressService.getById(uuid));
@@ -50,16 +50,18 @@ public class LessonProgressController implements MasterController<LessonProgress
         return ResponseEntity.ok().build();
     }
     @PostMapping("/full-course-progress")
-    public ResponseEntity<FullCourseProgressDto> fullCourseProgress(@RequestBody UserIdCourseIdRequest request) {
-        return ResponseEntity.ok(lessonProgressService.getFullCourseProgress(request.getCourseId(), request.getUserId()));
+    public ResponseEntity<FullCourseProgressDto> fullCourseProgress(@RequestBody UUID courseId, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(lessonProgressService.getFullCourseProgress(courseId, userId));
     }
     @PostMapping("/get-by-user-lesson")
     public ResponseEntity<List<LessonProgressDto>> getByLessonId(@RequestBody UserIdCourseIdRequest request) {
         return ResponseEntity.ok(lessonProgressService.getByCourseId(request.getUserId(), request.getCourseId()));
     }
     @PostMapping("/get-all-details")
-    public ResponseEntity<List<StudentLessonProgressDto>> getStudentLessonProgress(@RequestBody UserIdCourseIdRequest request) {
-        return ResponseEntity.ok(lessonProgressService.getStudentLessonProgress(request.getCourseId(), request.getUserId()));
+    public ResponseEntity<List<StudentLessonProgressDto>> getStudentLessonProgress(@RequestBody UUID courseId, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(lessonProgressService.getStudentLessonProgress(courseId, id));
     }
 
 }

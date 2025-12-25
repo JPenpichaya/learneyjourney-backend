@@ -84,4 +84,9 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         return detailDto;
     }
 
+    public List<CourseDto> getEnrolledCouresByUserId(String userId){
+        List<UUID> courseIds = enrollmentRepository.findBy_UserId(userId).stream().map(enrollment -> enrollment.getCourse().getId()).toList();
+        return courseRepository.findByIn_courseId(courseIds).stream().map(CourseDto::from).toList();
+    }
+
 }

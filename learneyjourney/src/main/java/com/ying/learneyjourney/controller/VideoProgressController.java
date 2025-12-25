@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.controller;
 
+import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.dto.VideoProgressDto;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.SearchCriteria;
@@ -8,11 +9,9 @@ import com.ying.learneyjourney.service.VideoProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/video-progress")
 public class VideoProgressController implements MasterController<VideoProgressDto, UUID> {
     private final VideoProgressService videoProgressService;
+    private final FirebaseAuthUtil firebaseAuthUtil;
     @Override
     public ResponseEntity<VideoProgressDto> getById(UUID uuid) {
         return ResponseEntity.ok(videoProgressService.getById(uuid));
@@ -48,8 +48,9 @@ public class VideoProgressController implements MasterController<VideoProgressDt
         return ResponseEntity.ok().build();
     }
     @PostMapping("/get-by-user-lesson")
-    public ResponseEntity<List<VideoProgressDto>> getByLessonId(@RequestBody UserIdCourseIdRequest request) {
-        return ResponseEntity.ok(videoProgressService.getByLessonId(request.getUserId(), request.getLessonId()));
+    public ResponseEntity<List<VideoProgressDto>> getByLessonId(@RequestBody UUID lessonId, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(videoProgressService.getByLessonId(id, lessonId));
     }
 
 }

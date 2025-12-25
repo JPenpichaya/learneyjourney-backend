@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.controller;
 
+import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.criteria.CourseCriteria;
 import com.ying.learneyjourney.dto.CourseDetailDto;
 import com.ying.learneyjourney.dto.CourseDto;
@@ -10,6 +11,7 @@ import com.ying.learneyjourney.service.CourseService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CourseController implements MasterController<CourseDto, UUID> {
     private final CourseService courseService;
+    private final FirebaseAuthUtil firebaseAuthUtil;
     @Override
     public ResponseEntity<CourseDto> getById(UUID uuid) {
         return ResponseEntity.ok(courseService.getById(uuid));
@@ -54,5 +57,10 @@ public class CourseController implements MasterController<CourseDto, UUID> {
     public ResponseEntity<CourseDetailDto> getCourseDetails(@PathVariable  UUID courseId) {
         CourseDetailDto courseDetail = courseService.getCourseDetailById(courseId);
         return ResponseEntity.ok(courseDetail);
+    }
+
+    public ResponseEntity<List<CourseDto>> getEnrolledCourses(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(courseService.getEnrolledCouresByUserId(id));
     }
 }
