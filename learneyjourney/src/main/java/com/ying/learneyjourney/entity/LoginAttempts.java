@@ -18,9 +18,8 @@ public class LoginAttempts extends Auditable {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private String user;
 
     @Column(name = "attempt_time", nullable = false)
     private LocalDateTime attemptTime;

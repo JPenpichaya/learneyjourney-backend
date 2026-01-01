@@ -18,7 +18,7 @@ public class LoginAttemptsDto {
     public static LoginAttemptsDto from(LoginAttempts e) {
         LoginAttemptsDto dto = new LoginAttemptsDto();
         dto.setId(e.getId());
-        dto.setUserId(e.getUser() != null ? e.getUser().getId() : null);
+        dto.setUserId(e.getUser());
         dto.setAttemptTime(e.getAttemptTime());
         dto.setSuccess(e.isSuccess());
         dto.setIpAddress(e.getIpAddress());
@@ -26,10 +26,10 @@ public class LoginAttemptsDto {
         return dto;
     }
 
-    public static LoginAttempts toEntity(LoginAttemptsDto dto, User user) {
+    public static LoginAttempts toEntity(LoginAttemptsDto dto) {
         LoginAttempts e = new LoginAttempts();
         e.setId(dto.getId());
-        e.setUser(user);
+        e.setUser(dto.userId);
         e.setAttemptTime(dto.getAttemptTime());
         e.setSuccess(dto.isSuccess());
         e.setIpAddress(dto.getIpAddress());

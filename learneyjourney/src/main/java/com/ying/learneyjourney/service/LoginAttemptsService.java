@@ -19,8 +19,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class LoginAttemptsService {
     private final LoginAttemptsRepository loginAttemptsRepository;
-    public void recordLoginAttempt(LoginAttemptsDto dto, User user){
-        LoginAttempts entity = LoginAttemptsDto.toEntity(dto, user);
+    public void recordLoginAttempt(LoginAttemptsDto dto){
+        LoginAttempts entity = LoginAttemptsDto.toEntity(dto);
         loginAttemptsRepository.save(entity);
     }
 

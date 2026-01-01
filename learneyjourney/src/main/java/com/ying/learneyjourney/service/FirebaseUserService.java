@@ -41,11 +41,11 @@ public class FirebaseUserService {
                 .map(user -> updateExistingUser(user, email, name, picture))
                 .orElseGet(() -> createNewUser(uid, email, name, picture));
 
-        recordLoginAttempts(request, userLogin, true);
+        recordLoginAttempts(request, userLogin.getId(), true);
         return userLogin;
     }
 
-    public void recordLoginAttempts(HttpServletRequest request, User userLogin, Boolean success) {
+    public void recordLoginAttempts(HttpServletRequest request, String userLogin, Boolean success) {
         String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null || ipAddress.isEmpty()) {
             ipAddress = request.getRemoteAddr();
@@ -57,7 +57,8 @@ public class FirebaseUserService {
         loginAttemptsDto.setSuccess(success);
         loginAttemptsDto.setIpAddress(ipAddress);
         loginAttemptsDto.setUserAgent(userAgent);
-        loginAttemptsService.recordLoginAttempt(loginAttemptsDto, userLogin);
+        loginAttemptsDto.setUserId(userLogin);
+        loginAttemptsService.recordLoginAttempt(loginAttemptsDto);
     }
 
     private User updateExistingUser(User user, String email, String name, String picture) {
