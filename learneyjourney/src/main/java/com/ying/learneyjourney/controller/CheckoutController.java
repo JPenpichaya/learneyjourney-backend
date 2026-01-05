@@ -10,6 +10,7 @@ import com.ying.learneyjourney.request.CreateSessionRequest;
 import com.ying.learneyjourney.request.LineItemRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/checkout")
+@Profile("!test")
 public class CheckoutController {
 
     @Value("${stripe.success-url}")
