@@ -19,7 +19,7 @@ public class LessonProgressDto implements Serializable {
 
     public static LessonProgressDto from(com.ying.learneyjourney.entity.LessonProgress lp) {
         LessonProgressDto dto = new LessonProgressDto();
-        dto.setId(lp.getCourseLesson().getId());
+        dto.setId(lp.getId());
         dto.setUserId(lp.getUser().getId());
         dto.setStatus(lp.getStatus());
         dto.setCompletedAt(lp.getCompletedAt());

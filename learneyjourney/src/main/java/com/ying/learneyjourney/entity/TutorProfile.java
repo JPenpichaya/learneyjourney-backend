@@ -19,7 +19,7 @@ public class TutorProfile extends Auditable {
 
     @OneToOne
     @JoinColumn(name = "user_id_id")
-    private User user_id;
+    private User user;
 
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
