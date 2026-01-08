@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.servlet.tags.form.TextareaTag;
 
 import java.util.UUID;
 
@@ -33,5 +34,7 @@ public class User extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private EnumUserRoles role;
+    @Column(name = "bio", columnDefinition = "TEXT")
+    private String bio;
 
 }

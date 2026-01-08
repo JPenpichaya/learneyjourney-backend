@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ying.learneyjourney.constaint.EnumUserRoles;
 import com.ying.learneyjourney.entity.User;
 import lombok.Data;
@@ -12,8 +13,11 @@ public class UserDto {
     private String email;
     private String displayName;
     private String photoUrl;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String stripConnect;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private EnumUserRoles role;
+    private String bio;
 
     public static UserDto from(User e){
         UserDto dto = new UserDto();

@@ -1,11 +1,13 @@
 package com.ying.learneyjourney.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.UUID;
 @Data
 public class TutorProfilesDto {
     private UUID id;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String userId;
     private String bio;
 
