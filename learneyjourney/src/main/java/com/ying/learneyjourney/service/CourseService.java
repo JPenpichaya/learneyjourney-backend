@@ -5,6 +5,7 @@ import com.ying.learneyjourney.dto.CourseDetailDto;
 import com.ying.learneyjourney.dto.CourseDto;
 import com.ying.learneyjourney.entity.Course;
 import com.ying.learneyjourney.entity.TutorProfile;
+import com.ying.learneyjourney.entity.VideoProgress;
 import com.ying.learneyjourney.master.*;
 import com.ying.learneyjourney.repository.*;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class CourseService implements MasterService<CourseDto, UUID> {
     private final EnrollmentRepository enrollmentRepository;
     private final CourseLessonRepository courseLessonRepository;
     private final CourseVideoRepository courseVideoRepository;
+    private final VideoProgressRepository videoProgressRepository;
     @Override
     public CourseDto create(CourseDto dto) {
         TutorProfile profile = tutorProfileRepository.findById(dto.getTutorProfileId()).orElseThrow(() -> new IllegalArgumentException("Tutor Profile not found"));
@@ -84,9 +86,20 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         return detailDto;
     }
 
-    public List<CourseDto> getEnrolledCouresByUserId(String userId){
-        List<UUID> courseIds = enrollmentRepository.findBy_UserId(userId).stream().map(enrollment -> enrollment.getCourse().getId()).toList();
-        return courseRepository.findByIn_courseId(courseIds).stream().map(CourseDto::from).toList();
+    public Page<CourseDto> getEnrolledCouresByUserId(PageCriteria<CourseCriteria> condition, String userId){
+        condition.getCondition().setUserId(userId);
+        Page<Course> courses = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
+        return courses.map(CourseDto::from);
+    }
+
+    public CourseDto getLatestProgressCourse(String userId){
+        VideoProgress progress = videoProgressRepository.findFirstByUserIdAndStatusOrderByUpdatedAtDesc(userId, "PROGRESS");
+        if(progress == null){
+            throw new BusinessException("No course in progress", "NO_COURSE_IN_PROGRESS");
+        }
+        UUID courseId = progress.getCourseVideo().getCourseLesson().getCourse().getId();
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new IllegalArgumentException("Course not found"));
+        return CourseDto.from(course);
     }
 
 }

@@ -59,8 +59,15 @@ public class CourseController implements MasterController<CourseDto, UUID> {
         return ResponseEntity.ok(courseDetail);
     }
 
-    public ResponseEntity<List<CourseDto>> getEnrolledCourses(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+    @PostMapping("/enrolled-courses")
+    public ResponseEntity<Page<CourseDto>> getEnrolledCourses(@RequestBody PageCriteria<CourseCriteria> conditions , @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
-        return ResponseEntity.ok(courseService.getEnrolledCouresByUserId(id));
+        return ResponseEntity.ok(courseService.getEnrolledCouresByUserId(conditions, id));
+    }
+
+    @PostMapping("/get-latest-learning")
+    public ResponseEntity<CourseDto> getLatestCourse(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(courseService.getLatestProgressCourse(id));
     }
 }

@@ -27,6 +27,7 @@ public class UserDto {
         dto.setPhotoUrl(e.getPhotoUrl());
         dto.setStripConnect(e.getStripConnect());
         dto.setRole(e.getRole());
+        dto.setBio(e.getBio());
         return dto;
     }
 
@@ -38,6 +39,7 @@ public class UserDto {
         e.setPhotoUrl(dto.getPhotoUrl());
         e.setStripConnect(dto.getStripConnect());
         e.setRole(dto.getRole());
+        e.setBio(dto.getBio());
         return e;
     }
 }

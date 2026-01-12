@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.repository;
 
+import com.ying.learneyjourney.constaint.EnumVideoProgressStatus;
 import com.ying.learneyjourney.entity.VideoProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface VideoProgressRepository extends JpaRepository<VideoProgress, UUID>, JpaSpecificationExecutor<VideoProgress> {
@@ -38,6 +40,22 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
             """, nativeQuery = true)
     List<VideoProgressRow> findVideoProgressRows(@Param("userId") String userId,
                                                  @Param("lessonId") UUID lessonId);
+
+    @Query(
+            value = """
+        SELECT * 
+        FROM video_progress 
+        WHERE user_id = :userId 
+          AND status = :status 
+        ORDER BY updated_at DESC 
+        LIMIT 1
+    """,
+            nativeQuery = true
+    )
+    VideoProgress findFirstByUserIdAndStatusOrderByUpdatedAtDesc(
+            @Param("userId") String userId,
+            @Param("status") String status
+    );
 
     public interface VideoProgressRow {
         UUID getId();

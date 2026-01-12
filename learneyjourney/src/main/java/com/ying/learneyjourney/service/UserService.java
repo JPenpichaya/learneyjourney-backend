@@ -41,7 +41,7 @@ public class UserService implements MasterService<UserDto, String> {
     public UserDto getById(String s) {
         Optional<User> byId = userRepository.findById(s);
         if(byId.isEmpty()) throw new IllegalArgumentException("User not found with id: " + s);
-        return null;
+        return UserDto.from(byId.get());
     }
 
     @Override
