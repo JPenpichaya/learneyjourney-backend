@@ -24,4 +24,7 @@ public class TutorProfile extends Auditable {
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
+    @Column(name = "strip_connect", length = 1000)
+    private String stripConnect;
+
 }

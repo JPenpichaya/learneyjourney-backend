@@ -10,12 +10,14 @@ public class TutorProfilesDto {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String userId;
     private String bio;
+    private String stripConnectId;
 
     public static TutorProfilesDto from(com.ying.learneyjourney.entity.TutorProfile tutorProfile) {
         TutorProfilesDto dto = new TutorProfilesDto();
         dto.setId(tutorProfile.getId());
         dto.setUserId(tutorProfile.getUser().getId());
         dto.setBio(tutorProfile.getBio());
+        dto.setStripConnectId(tutorProfile.getStripConnect());
         return dto;
     }
 
@@ -24,6 +26,7 @@ public class TutorProfilesDto {
         tutorProfile.setId(dto.getId());
         tutorProfile.setUser(user);
         tutorProfile.setBio(dto.getBio());
+        tutorProfile.setStripConnect(dto.getStripConnectId());
         return tutorProfile;
     }
 }

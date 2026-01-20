@@ -40,4 +40,6 @@ public class Purchase extends Auditable {
     private OffsetDateTime purchasedAt;
     @Column(name = "stripe_event_id")
     private String stripeEventId;
+    @Column(name = "order_id")
+    private String orderId;
 }

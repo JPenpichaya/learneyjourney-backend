@@ -10,12 +10,15 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 @Getter
 @Setter
 public class CourseCriteria extends SearchCriteria<Course> {
     private String classType;
     private List<String> badgeType;
     private String userId;
+    private UUID tutorId;
     @Override
     public Specification<Course> getSpecification() {
         return (root, query, cb) -> {
@@ -55,6 +58,10 @@ public class CourseCriteria extends SearchCriteria<Course> {
                         );
 
                 predicates.add(cb.exists(sq));
+            }
+
+            if (tutorId != null) {
+                predicates.add(cb.equal(root.get("tutorProfile").get("id"), tutorId));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };

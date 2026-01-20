@@ -37,4 +37,6 @@ public class Course extends Auditable {
     private String priceId;
     @Column(name = "is_show_on_profile")
     private Boolean isShowOnProfile;
+    @Column(name = "product_id")
+    private String productId;
 }

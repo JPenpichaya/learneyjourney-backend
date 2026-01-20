@@ -14,8 +14,6 @@ public class UserDto {
     private String displayName;
     private String photoUrl;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String stripConnect;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private EnumUserRoles role;
     private String bio;
 
@@ -25,7 +23,6 @@ public class UserDto {
         dto.setEmail(e.getEmail());
         dto.setDisplayName(e.getDisplayName());
         dto.setPhotoUrl(e.getPhotoUrl());
-        dto.setStripConnect(e.getStripConnect());
         dto.setRole(e.getRole());
         dto.setBio(e.getBio());
         return dto;
@@ -37,7 +34,6 @@ public class UserDto {
         e.setEmail(dto.getEmail());
         e.setDisplayName(dto.getDisplayName());
         e.setPhotoUrl(dto.getPhotoUrl());
-        e.setStripConnect(dto.getStripConnect());
         e.setRole(dto.getRole());
         e.setBio(dto.getBio());
         return e;

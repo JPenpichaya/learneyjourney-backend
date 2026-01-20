@@ -70,4 +70,9 @@ public class CourseController implements MasterController<CourseDto, UUID> {
         String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
         return ResponseEntity.ok(courseService.getLatestProgressCourse(id));
     }
+
+    @PostMapping("/get-is-show-profile/{profileId}")
+    public ResponseEntity<CourseDto> getIsShowCourseOnProfile(@PathVariable UUID profileId) {
+        return ResponseEntity.ok(courseService.getIsShowCourseOnProfile(profileId));
+    }
 }

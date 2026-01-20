@@ -102,4 +102,19 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         return CourseDto.from(course);
     }
 
+    public CourseDto getIsShowCourseOnProfile(UUID profileId){
+        List<Course> onProfileTrue = courseRepository.findBy_IsShowCourseOnProfile_True(profileId);
+        if(onProfileTrue.isEmpty()){
+            throw new BusinessException("No course to show on profile", "NO_COURSE_ON_PROFILE");
+        }
+        Course course = onProfileTrue.getFirst();
+        return CourseDto.from(course);
+    }
+
+    public Page<CourseDto> getCoursesByTutorProfileId(UUID tutorProfileId, PageCriteria<CourseCriteria> condition){
+        condition.getCondition().setTutorId(tutorProfileId);
+        Page<Course> courses = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
+        return courses.map(CourseDto::from);
+    }
+
 }

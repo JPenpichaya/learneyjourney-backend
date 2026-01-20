@@ -14,4 +14,6 @@ public class CreateSessionRequest {
     private String customerEmail;
     private String userId;
     private UUID courseId;
+    private Long amount;
+    private String currency;
 }

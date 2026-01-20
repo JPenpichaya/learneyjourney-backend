@@ -3,7 +3,11 @@ package com.ying.learneyjourney.service;
 import com.stripe.model.checkout.Session;
 import com.ying.learneyjourney.constaint.EnumEnrollmentStatus;
 import com.ying.learneyjourney.dto.EnrollmentDto;
+import com.ying.learneyjourney.dto.PurchaseDto;
+import com.ying.learneyjourney.entity.Orders;
 import com.ying.learneyjourney.entity.Purchase;
+import com.ying.learneyjourney.master.BusinessException;
+import com.ying.learneyjourney.repository.OrdersRepository;
 import com.ying.learneyjourney.repository.PurchaseRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,21 +28,18 @@ public class PaymentService {
     private final PurchaseRepository purchaseRepository;
     private final EnrollmentService enrollmentService;
     private final PostEnrollmentAsyncService postEnrollmentAsyncService;
+    private final OrdersRepository ordersRepository;
 
-    public void handleCheckoutSessionCompleted(Session session) {
-        String sessionId = session.getId();
+    public Purchase savePurchase(String sessionId,
+                                    String paymentIntentId,
+                                    String userId,
+                                    String courseId,
+                                    Long amount,
+                                    String currency,
+                                    String eventId,
+                                    String status,
+                                    String orderId) {
 
-        // ✅ Idempotency: if we already processed this session, skip
-        if (purchaseRepository.findByStripeSessionId(sessionId).isPresent()) {
-            return;
-        }
-
-        String userId = session.getMetadata().get("userId");
-        String courseId = session.getMetadata().get("courseId");
-
-        Long amount = session.getAmountTotal();  // in smallest currency unit
-        String currency = session.getCurrency();
-        String paymentIntentId = session.getPaymentIntent();
 
         Purchase purchase = new Purchase();
         purchase.setUserId(userId);
@@ -45,15 +48,12 @@ public class PaymentService {
         purchase.setCurrency(currency);
         purchase.setStripeSessionId(sessionId);
         purchase.setStripePaymentIntentId(paymentIntentId);
-        purchase.setStatus("PAID");
+        purchase.setStatus(status);
         purchase.setPurchasedAt(OffsetDateTime.now());
+        purchase.setOrderId(orderId);
 
         purchaseRepository.save(purchase);
-
-        // 🤝 Here you can also:
-        // - Mark course as unlocked for this user
-        // - Send confirmation email
-        // - Log analytics
+        return purchase;
     }
     @Transactional
     public void saveCoursePurchaseFromWebhook(
@@ -63,7 +63,9 @@ public class PaymentService {
             String courseId,
             Long amount,
             String currency,
-            String eventId
+            String eventId,
+            String status,
+            String orderId
     ) {
         System.out.println("💾 Saving purchase for user " + userId + " course " + courseId);
 
@@ -90,26 +92,32 @@ public class PaymentService {
             return;
         }
 
-        Purchase purchase = new Purchase();
-        purchase.setStripeSessionId(sessionId);
-        purchase.setStripePaymentIntentId(paymentIntentId);
-        purchase.setUserId(userId);
-        purchase.setCourseId(courseId);
-        purchase.setAmount(amount);
-        purchase.setCurrency(currency);
-        purchase.setStatus("PAID");
-        purchase.setPurchasedAt(OffsetDateTime.now());
-        purchase.setStripeEventId(eventId);
+        if(orderId != null){
+            Orders orders = ordersRepository.findby_id(UUID.fromString(orderId)).orElseThrow(()-> new BusinessException("Order not found: " + orderId, "ORDER_NOT_FOUND"));
+            orders.setStatus(status);
+            ordersRepository.save(orders);
+        }
 
-        purchaseRepository.save(purchase);
+        List<Purchase> purchases = purchaseRepository.findby_orderId(orderId);
+        for(Purchase purchase : purchases){
+            purchase.setStripeSessionId(sessionId);
+            purchase.setStripePaymentIntentId(paymentIntentId);
+            purchase.setStatus(status);
+            purchase.setPurchasedAt(OffsetDateTime.now());
+            purchase.setStripeEventId(eventId);
+            purchaseRepository.save(purchase);
 
-        EnrollmentDto enrollmentDto = new EnrollmentDto();
-        enrollmentDto.setUserId(userId);
-        enrollmentDto.setCourseId(UUID.fromString(courseId));
-        enrollmentDto.setProgress(0);
-        enrollmentDto.setStatus(EnumEnrollmentStatus.NOT_START);
+            if("FAILED".equals(status)){
+                continue;
+            }
+            EnrollmentDto enrollmentDto = new EnrollmentDto();
+            enrollmentDto.setUserId(userId);
+            enrollmentDto.setCourseId(UUID.fromString(purchase.getCourseId()));
+            enrollmentDto.setProgress(0);
+            enrollmentDto.setStatus(EnumEnrollmentStatus.NOT_START);
 
-        enrollmentService.create(enrollmentDto);
+            enrollmentService.create(enrollmentDto);
+        }
 
         System.out.println("✅ Purchase saved!");
 
