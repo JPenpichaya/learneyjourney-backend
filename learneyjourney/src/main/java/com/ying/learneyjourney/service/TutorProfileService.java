@@ -1,5 +1,7 @@
 package com.ying.learneyjourney.service;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.ying.learneyjourney.dto.TutorProfilesDto;
 import com.ying.learneyjourney.entity.TutorProfile;
 import com.ying.learneyjourney.entity.User;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 @Service
@@ -62,5 +65,9 @@ public class TutorProfileService implements MasterService<TutorProfilesDto, UUID
     public void deleteById(UUID uuid) {
         if(!tutorProfileRepository.existsById(uuid)) throw new IllegalArgumentException("Tutor Profile not found");
         tutorProfileRepository.deleteById(uuid);
+    }
+
+    public void makeTutor(String userId) throws FirebaseAuthException {
+        FirebaseAuth.getInstance().setCustomUserClaims(userId, Map.of("role", "TEACHER"));
     }
 }

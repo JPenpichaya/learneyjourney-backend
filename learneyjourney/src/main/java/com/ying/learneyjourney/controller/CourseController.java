@@ -4,6 +4,8 @@ import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.criteria.CourseCriteria;
 import com.ying.learneyjourney.dto.CourseDetailDto;
 import com.ying.learneyjourney.dto.CourseDto;
+import com.ying.learneyjourney.dto.request.CreateCourseRequest;
+import com.ying.learneyjourney.dto.response.CourseInfoResponse;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.PageCriteria;
 import com.ying.learneyjourney.master.SearchCriteria;
@@ -54,8 +56,8 @@ public class CourseController implements MasterController<CourseDto, UUID> {
     }
 
     @PostMapping("/details/{courseId}")
-    public ResponseEntity<CourseDetailDto> getCourseDetails(@PathVariable  UUID courseId) {
-        CourseDetailDto courseDetail = courseService.getCourseDetailById(courseId);
+    public ResponseEntity<CourseInfoResponse> getCourseDetails(@PathVariable  UUID courseId) {
+        com.ying.learneyjourney.dto.response.CourseInfoResponse courseDetail = courseService.getCourseDetailById(courseId);
         return ResponseEntity.ok(courseDetail);
     }
 
@@ -74,5 +76,11 @@ public class CourseController implements MasterController<CourseDto, UUID> {
     @PostMapping("/get-is-show-profile/{profileId}")
     public ResponseEntity<CourseDto> getIsShowCourseOnProfile(@PathVariable UUID profileId) {
         return ResponseEntity.ok(courseService.getIsShowCourseOnProfile(profileId));
+    }
+
+    @PostMapping("/create-fully")
+    public ResponseEntity<Void> createCourseFullyController(@RequestBody CreateCourseRequest request){
+        courseService.createCourseFully(request);
+        return ResponseEntity.ok().build();
     }
 }

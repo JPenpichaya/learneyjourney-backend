@@ -19,6 +19,8 @@ public class Course extends Auditable {
     private UUID id;
     @Column(name = "title", nullable = false)
     private String title;
+    @Column(name = "subtitle")
+    private String subtitle;
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     @ManyToOne
@@ -39,4 +41,14 @@ public class Course extends Auditable {
     private Boolean isShowOnProfile;
     @Column(name = "product_id")
     private String productId;
+    @Column(name = "category")
+    private String category;
+    @Column(name = "level")
+    private String level;
+    @Column(name="access")
+    private String access;
+    @Column(name = "outcomes", columnDefinition = "TEXT")
+    private String outcomes;
+    @Column(name="have_certificate")
+    private Boolean haveCertificate;
 }

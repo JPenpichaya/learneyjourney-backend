@@ -8,6 +8,8 @@ import java.util.UUID;
 public class FullCourseProgressDto {
     private String userId;
     private UUID courseId;
+    private String courseTitle;
+    private String courseSubtitle;
     private int completedPercentage;
     private long totalLessons;
     private long completedLessons;

@@ -7,10 +7,8 @@ import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.dto.StudentLessonProgressDto;
 import com.ying.learneyjourney.dto.VideoProgressRowDto;
-import com.ying.learneyjourney.entity.CourseLesson;
-import com.ying.learneyjourney.entity.CourseVideo;
-import com.ying.learneyjourney.entity.LessonProgress;
-import com.ying.learneyjourney.entity.VideoProgress;
+import com.ying.learneyjourney.entity.*;
+import com.ying.learneyjourney.master.BusinessException;
 import com.ying.learneyjourney.master.MasterService;
 import com.ying.learneyjourney.master.SearchCriteria;
 
@@ -33,6 +31,7 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
     private final UserRepository userRepository;
     private final CourseVideoRepository courseVideoRepository;
     private final VideoProgressRepository videoProgressRepository;
+    private final CourseRepository courseRepository;
     @Override
     public LessonProgressDto create(LessonProgressDto dto) {
         LessonProgress entity = LessonProgressDto.toEntity(dto);
@@ -87,6 +86,7 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
     }
 
     public FullCourseProgressDto getFullCourseProgress(UUID courseId, String userId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new BusinessException("Course not found", "COURSE_NOT_FOUND"));
         List<CourseLesson> lessons = courseLessonRepository.findByCourse(courseId);
         List<UUID> ids = lessons.stream().map(CourseLesson::getId).toList();
         List<LessonProgress> progresses = lessonProgressRepository.findByCourseLessonIdInAndUserId(ids, userId);
@@ -95,6 +95,8 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
         int percent = (allLessons == 0) ? 0 : (int)((completedLessons * 100) / allLessons);
         FullCourseProgressDto dto = new FullCourseProgressDto();
         dto.setCourseId(courseId);
+        dto.setCourseTitle(course.getTitle());
+        dto.setCourseSubtitle(course.getSubtitle());
         dto.setUserId(userId);
         dto.setCompletedPercentage(percent);
         dto.setTotalLessons(allLessons);

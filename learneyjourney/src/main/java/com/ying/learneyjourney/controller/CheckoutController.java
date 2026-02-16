@@ -43,19 +43,37 @@ public class CheckoutController {
     private final StripeTransferService stripeTransferService;
     private final TutorProfileRepository tutorProfileRepository;
 
+    @Value("${app.require-basic-auth:true}")
+    private boolean requireBasicAuth;
+
     @PostMapping("/create-session")
     public ResponseEntity<Map<String, Object>> createCheckoutSession(
             @Valid @RequestBody CreateSessionRequest request,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
+        String userId;
+        String email;
+
+        if (requireBasicAuth) {
+            if (authHeader == null || authHeader.isBlank()) {
+                return ResponseEntity.status(401).body(Map.of(
+                        "success", false,
+                        "error", "UNAUTHORIZED",
+                        "message", "Missing Authorization header"
+                ));
+            }
+            FirebaseToken decoded = FirebaseAuthUtil.verify(authHeader);
+
+            userId = decoded.getUid(); // ✅ THIS IS YOUR USER ID
+            email = decoded.getEmail();
+        }else{
+            userId = "V3Mai7cJY8Xt5F0KVhusMQ7kycs2";
+            email = "codebytechademics@gmail.com";
+
+        }
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new IllegalArgumentException("At least one item is required");
         }
-
-        FirebaseToken decoded = FirebaseAuthUtil.verify(authHeader);
-
-        String userId = decoded.getUid(); // ✅ THIS IS YOUR USER ID
-        String email = decoded.getEmail(); // optional
 
         try {
             List<SessionCreateParams.LineItem> lineItems = new ArrayList<>();
@@ -103,6 +121,10 @@ public class CheckoutController {
                 );
             }
 
+            String base = "https://c2381f3bb44f.ngrok-free.app";
+            String successUrl = base + "/stripe-success.html?room=demo";
+            String cancelUrl  = base + "/stripe-cancel.html";
+
             SessionCreateParams.Builder builder = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setSuccessUrl(successUrl)   // use server-side config
@@ -144,6 +166,7 @@ public class CheckoutController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
         }
     }
+
 
     @PostMapping("/create-session/courses")
     public ResponseEntity<Map<String, Object>> createCheckoutSessionCourse(

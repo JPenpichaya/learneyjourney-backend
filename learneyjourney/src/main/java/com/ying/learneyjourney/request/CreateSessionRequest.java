@@ -16,4 +16,6 @@ public class CreateSessionRequest {
     private UUID courseId;
     private Long amount;
     private String currency;
+    private String successUrl;
+    private String cancelUrl;
 }

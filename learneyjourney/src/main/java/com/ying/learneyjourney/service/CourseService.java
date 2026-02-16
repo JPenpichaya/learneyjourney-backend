@@ -1,20 +1,23 @@
 package com.ying.learneyjourney.service;
 
+import com.ying.learneyjourney.constaint.EnumCourseBadge;
 import com.ying.learneyjourney.criteria.CourseCriteria;
 import com.ying.learneyjourney.dto.CourseDetailDto;
 import com.ying.learneyjourney.dto.CourseDto;
-import com.ying.learneyjourney.entity.Course;
-import com.ying.learneyjourney.entity.TutorProfile;
-import com.ying.learneyjourney.entity.VideoProgress;
+import com.ying.learneyjourney.dto.request.CreateCourseRequest;
+import com.ying.learneyjourney.dto.response.CourseInfoResponse;
+import com.ying.learneyjourney.entity.*;
 import com.ying.learneyjourney.master.*;
 import com.ying.learneyjourney.repository.*;
 import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 @Service
 @AllArgsConstructor
@@ -70,19 +73,31 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         return all.map(CourseDto::from);
     }
 
-    public CourseDetailDto getCourseDetailById(UUID courseId) {
+    public CourseInfoResponse getCourseDetailById(UUID courseId) {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new IllegalArgumentException("Course not found"));
         Double averageRating = courseReviewRepository.getAverageRatingByCourseId(courseId);
         Long totalEnrollments = enrollmentRepository.countByCourseId(courseId);
         Long totalLessons = courseLessonRepository.countByCourseId(courseId);
         CourseVideoRepository.DurationDisplayRow durationDisplay = courseVideoRepository.getCourseDurationDisplay(courseId);
         String totalDuration = durationDisplay != null ? String.format("%s %s", durationDisplay.getDisplayValue(), durationDisplay.getDisplayUnit()) : "0 mins";
-        CourseDetailDto detailDto = new CourseDetailDto();
+        CourseInfoResponse detailDto = new CourseInfoResponse();
         detailDto.setId(course.getId());
-        detailDto.setTotalStudents(totalEnrollments);
-        detailDto.setTotalLessons(totalLessons);
-        detailDto.setRating(averageRating);
-        detailDto.setTotalDuration(totalDuration);
+        detailDto.setTitle(course.getTitle());
+        detailDto.setSubtitle(course.getSubtitle());
+        detailDto.setDescription(course.getDescription());
+        detailDto.setCategory(course.getCategory());
+        detailDto.setLevel(course.getLevel());
+        detailDto.setDuration(totalDuration);
+        detailDto.setHaveCertificate(course.getHaveCertificate());
+        detailDto.setLessons(totalLessons);
+        detailDto.setOutcomes(course.getOutcomes());
+        detailDto.setRate(averageRating);
+        detailDto.setStudents(String.format("%s students", totalEnrollments));
+        CourseInfoResponse.TutorProfile tutorProfile = new CourseInfoResponse.TutorProfile();
+        tutorProfile.setName(course.getTutorProfile().getUser().getDisplayName());
+        tutorProfile.setTitle(course.getTutorProfile().getBio());
+        detailDto.setTutorProfile(tutorProfile);
+
         return detailDto;
     }
 
@@ -115,6 +130,49 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         condition.getCondition().setTutorId(tutorProfileId);
         Page<Course> courses = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
         return courses.map(CourseDto::from);
+    }
+
+    public void createCourseFully(CreateCourseRequest request){
+        TutorProfile tutorProfile = tutorProfileRepository.findById(request.getCourseInfo().getTutorProfileId()).orElseThrow(() -> new BusinessException("Tutor Profile not found", "TUTOR_PROFILE_NOT_FOUND"));
+        Course course = getCourse(request, tutorProfile);
+        courseRepository.save(course);
+        Integer positionLesson = 1;
+        for(CreateCourseRequest.LessonInfo lessonInfo : request.getLessonInfo()) {
+            CourseLesson lesson = new CourseLesson();
+            lesson.setCourse(course);
+            lesson.setTitle(lessonInfo.getTitle());
+            lesson.setDescription(lessonInfo.getDescription());
+            lesson.setPosition(positionLesson);
+            courseLessonRepository.save(lesson);
+            Integer positionVideo = 1;
+            for(CreateCourseRequest.VideoInfo videoInfo : lessonInfo.getVideos()) {
+                CourseVideo video = new CourseVideo();
+                video.setCourseLesson(lesson);
+                video.setTitle(videoInfo.getTitle());
+                video.setUrl(videoInfo.getUrl());
+                video.setPosition(positionVideo);
+                courseVideoRepository.save(video);
+                positionVideo++;
+            }
+        }
+    }
+
+    @NotNull
+    private static Course getCourse(CreateCourseRequest request, TutorProfile tutorProfile) {
+        Course course = new Course();
+        course.setTitle(request.getCourseInfo().getTitle());
+        course.setDescription(request.getCourseInfo().getDescription());
+        course.setTutorProfile(tutorProfile);
+        course.setCategory(request.getCourseInfo().getCategory());
+        course.setLevel(request.getCourseInfo().getLevel());
+        course.setImageUrl(request.getCourseInfo().getImageUrl());
+        course.setIsLive(request.getCourseInfo().getIsLive());
+        course.setBadge(EnumCourseBadge.NEW);
+        course.setAccess(request.getCourseInfo().getAccess());
+        course.setPriceThb(request.getCourseInfo().getPriceThb());
+        course.setSubtitle(request.getCourseInfo().getSubtitle());
+        course.setOutcomes(request.getCourseInfo().getOutcomes());
+        return course;
     }
 
 }

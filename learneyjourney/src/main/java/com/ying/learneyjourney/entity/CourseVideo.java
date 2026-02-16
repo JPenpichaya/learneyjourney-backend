@@ -27,5 +27,7 @@ public class CourseVideo extends Auditable {
     private Integer duration; // duration in seconds
     @Column(name = "position")
     private Integer position;
+    @Column(name="worksheet")
+    private String worksheet;
 
 }

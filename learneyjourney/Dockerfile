@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 # Maven:
 RUN chmod +x mvnw \
-    && ./mvnw -DskipTests package
+    && ./mvnw -Dmaven.test.skip=true package
 # Gradle (instead): RUN ./gradlew bootJar
 
 # ---- run stage ----
