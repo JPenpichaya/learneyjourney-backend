@@ -21,7 +21,8 @@ public class CorsConfig {
         cfg.setAllowedOriginPatterns(List.of(
                 "https://www.learneyjourney.com",
                 "https://learneyjourney.com",
-                "https://learney-frontend-dev-24285490035.asia-southeast1.run.app"
+                "https://learney-frontend-dev-24285490035.asia-southeast1.run.app",
+                "http://localhost:5173"
         ));          // use addAllowedOrigin for exact origins
         cfg.setAllowCredentials(true);              // if you ever send cookies (not needed for bearer tokens)
         cfg.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","X-Requested-With", "Origin"));

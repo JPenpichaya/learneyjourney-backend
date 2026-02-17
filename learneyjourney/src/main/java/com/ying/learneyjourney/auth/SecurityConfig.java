@@ -56,13 +56,15 @@ public class SecurityConfig {
                                 "/api/stripe/webhook-test",
                                 "/api/checkout/create-session",
                                 "/token",
-                                "/api/course/all/**"
+                                "/api/course/all/**",
+                                "/api/auth/login"
                         ).permitAll()
 
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // ✅ USER APIs (USER/TEACHER/ADMIN can call)
-                        .requestMatchers("/api/lesson-progress/**")
+                        .requestMatchers("/api/lesson-progress/**",
+                                "/api/users/get-info")
                         .hasAnyRole("USER", "TEACHER", "ADMIN")
 
                         // ✅ TEACHER APIs (TEACHER/ADMIN can call)

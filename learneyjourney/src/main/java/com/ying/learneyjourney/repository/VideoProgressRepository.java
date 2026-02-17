@@ -58,6 +58,7 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
             @Param("status") String status
     );
 
+
     public interface VideoProgressRow {
         UUID getId();
 

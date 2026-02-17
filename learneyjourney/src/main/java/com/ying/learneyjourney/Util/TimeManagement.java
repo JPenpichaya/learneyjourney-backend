@@ -14,4 +14,12 @@ public class TimeManagement {
         return String.format("%02d:%02d", minutes, seconds);
 
     }
+
+    public static int calculateWatchPercentage(long watchedSeconds, long totalSeconds) {
+        if (totalSeconds <= 0) {
+            return 0;
+        }
+        double percentage = ((double) watchedSeconds / totalSeconds) * 100;
+        return (int) Math.round(Math.min(100, Math.max(0, percentage)));
+    }
 }

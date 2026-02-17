@@ -4,6 +4,8 @@ import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.dto.StudentLessonProgressDto;
+import com.ying.learneyjourney.dto.response.LatestLessonUpdateResponse;
+import com.ying.learneyjourney.dto.response.OverallProgressResponse;
 import com.ying.learneyjourney.master.MasterController;
 import com.ying.learneyjourney.master.SearchCriteria;
 import com.ying.learneyjourney.request.UserIdCourseIdRequest;
@@ -62,6 +64,18 @@ public class LessonProgressController implements MasterController<LessonProgress
     public ResponseEntity<List<StudentLessonProgressDto>> getStudentLessonProgress(@RequestBody UUID courseId, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
         return ResponseEntity.ok(lessonProgressService.getStudentLessonProgress(courseId, id));
+    }
+
+    @PostMapping("/lastest-update")
+    public ResponseEntity<LatestLessonUpdateResponse> getStudentLatestProgress(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(lessonProgressService.getLatestUpdateLesson(id));
+    }
+
+    @PostMapping("/overall-progress")
+    public ResponseEntity<OverallProgressResponse> getOverallProgressResponseController(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(lessonProgressService.getOverallProgress(id));
     }
 
 }

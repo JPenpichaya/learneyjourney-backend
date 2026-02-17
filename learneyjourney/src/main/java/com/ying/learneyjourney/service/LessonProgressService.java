@@ -7,6 +7,8 @@ import com.ying.learneyjourney.dto.FullCourseProgressDto;
 import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.dto.StudentLessonProgressDto;
 import com.ying.learneyjourney.dto.VideoProgressRowDto;
+import com.ying.learneyjourney.dto.response.LatestLessonUpdateResponse;
+import com.ying.learneyjourney.dto.response.OverallProgressResponse;
 import com.ying.learneyjourney.entity.*;
 import com.ying.learneyjourney.master.BusinessException;
 import com.ying.learneyjourney.master.MasterService;
@@ -136,5 +138,33 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
             list.add(dto);
         }
         return list;
+    }
+
+    public LatestLessonUpdateResponse getLatestUpdateLesson(String userId){
+        LatestLessonUpdateResponse response = new LatestLessonUpdateResponse();
+        VideoProgress videoProgress = videoProgressRepository.findFirstByUserIdAndStatusOrderByUpdatedAtDesc(userId, EnumVideoProgressStatus.PROGRESS.name());
+        List<LatestLessonUpdateResponse.Course> courseList = new ArrayList<>();
+        if(videoProgress == null) return response;
+        CourseVideo courseVideo = videoProgress.getCourseVideo();
+        LatestLessonUpdateResponse.Course course = new LatestLessonUpdateResponse.Course();
+        course.setTitle(course.getTitle());
+        course.setId(courseVideo.getId());
+        course.setLastAtLesson(courseVideo.getCourseLesson().getPosition());
+        course.setDuration(courseVideo.getDuration() == null ? null : TimeManagement.formatSecondsToHMS(courseVideo.getDuration()));
+        course.setProgress(courseVideo.getDuration() == null || videoProgress.getWatchedSeconds() == null ? 0 : TimeManagement.calculateWatchPercentage(videoProgress.getWatchedSeconds(), courseVideo.getDuration()));
+        courseList.add(course);
+        response.setCourse(courseList);
+        return response;
+    }
+
+    public OverallProgressResponse getOverallProgress(String userId){
+        OverallProgressResponse response = new OverallProgressResponse();
+        long progressCoursesByUserId = lessonProgressRepository.countInProgressCoursesByUserId(userId);
+        long completedCoursesByUserId = lessonProgressRepository.countCompletedCoursesByUserId(userId);
+        long allCoursesByUserId = lessonProgressRepository.countAllCoursesByUserId(userId);
+        response.setCompleted(completedCoursesByUserId);
+        response.setProgress(progressCoursesByUserId);
+        response.setOverall(TimeManagement.calculateWatchPercentage(completedCoursesByUserId, allCoursesByUserId));
+        return response;
     }
 }

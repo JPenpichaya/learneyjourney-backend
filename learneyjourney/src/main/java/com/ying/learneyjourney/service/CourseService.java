@@ -6,6 +6,7 @@ import com.ying.learneyjourney.dto.CourseDetailDto;
 import com.ying.learneyjourney.dto.CourseDto;
 import com.ying.learneyjourney.dto.request.CreateCourseRequest;
 import com.ying.learneyjourney.dto.response.CourseInfoResponse;
+import com.ying.learneyjourney.dto.response.OverallProgressResponse;
 import com.ying.learneyjourney.entity.*;
 import com.ying.learneyjourney.master.*;
 import com.ying.learneyjourney.repository.*;
