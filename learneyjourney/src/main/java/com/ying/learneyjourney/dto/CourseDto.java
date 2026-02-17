@@ -19,6 +19,10 @@ public class CourseDto implements Serializable {
     private String priceId;
     private Boolean isShowOnProfile;
     private String productId;
+    private String tutorName;
+    private String level;
+    private Long lessons;
+    private String duration;
 
     public static CourseDto from(com.ying.learneyjourney.entity.Course course) {
         CourseDto dto = new CourseDto();
@@ -33,6 +37,7 @@ public class CourseDto implements Serializable {
         dto.setPriceId(course.getPriceId());
         dto.setIsShowOnProfile(course.getIsShowOnProfile());
         dto.setProductId(course.getProductId());
+        dto.setLevel(course.getLevel());
         return dto;
     }
 
@@ -49,6 +54,7 @@ public class CourseDto implements Serializable {
         course.setPriceId(dto.getPriceId());
         course.setIsShowOnProfile(dto.getIsShowOnProfile());
         course.setProductId(dto.getProductId());
+        course.setLevel(dto.getLevel());
         return course;
     }
 }

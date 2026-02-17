@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
+
 @Service
 @AllArgsConstructor
 public class CourseService implements MasterService<CourseDto, UUID> {
@@ -70,7 +72,16 @@ public class CourseService implements MasterService<CourseDto, UUID> {
     }
     public Page<CourseDto> search(PageCriteria<CourseCriteria> condition){
         Page<Course> all = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
-        return all.map(CourseDto::from);
+        return all.map(course -> {
+            CourseDto courseDto = new CourseDto();
+            CourseVideoRepository.DurationDisplayRow durationDisplay = courseVideoRepository.getCourseDurationDisplay(course.getId());
+            String totalDuration = durationDisplay != null ? String.format("%s %s", durationDisplay.getDisplayValue(), durationDisplay.getDisplayUnit()) : "0 mins";
+            Long totalLessons = courseLessonRepository.countByCourseId(course.getId());
+            courseDto = CourseDto.from(course);
+            courseDto.setLessons(totalLessons);
+            courseDto.setDuration(totalDuration);
+            return courseDto;
+        });
     }
 
     public CourseInfoResponse getCourseDetailById(UUID courseId) {

@@ -50,7 +50,7 @@ public class CourseController implements MasterController<CourseDto, UUID> {
         courseService.deleteById(uuid);
         return ResponseEntity.ok().build();
     }
-    @PostMapping("/search")
+    @PostMapping("/all/search")
     public ResponseEntity<Page<CourseDto>> search(@RequestBody PageCriteria<CourseCriteria> conditions) {
         return ResponseEntity.ok(courseService.search(conditions));
     }

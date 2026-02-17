@@ -25,52 +25,58 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/api/**")
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(e -> e.authenticationEntryPoint(
-                        (req, res, ex) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED)
-                ))
-                .addFilterBefore(firebaseFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(b -> b.disable()) // IMPORTANT: avoid Basic challenges on API
-                .authorizeHttpRequests(auth -> auth
+    public InMemoryUserDetailsManager userDetailsService() {
+        UserDetails admin = User.withUsername("admin")
+                .password("{noop}supersecret") // no encoding
+                .roles("ADMIN")
+                .build();
 
-                        // Preflight
+        return new InMemoryUserDetailsManager(admin);
+    }
+
+    @Bean
+    SecurityFilterChain chain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> Customizer.withDefaults())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) ->
+                        res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
+                .httpBasic(Customizer.withDefaults()) // Basic for admin
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public endpoints
+                        // public
                         .requestMatchers(
+                                "/stripe-success.html",
+                                "/public/**",
+                                "/health",
+                                "/dbcheck",
                                 "/api/stripe/webhook",
                                 "/api/stripe/webhook-test",
                                 "/api/checkout/create-session",
-                                "/api/auth/**"
+                                "/token",
+                                "/api/course/all/**"
                         ).permitAll()
 
-                        // ✅ USER endpoints (USER, TEACHER, ADMIN)
-                        .requestMatchers(
-                                "/api/courses/**",
-                                "/api/lessons/**",
-                                "/api/lesson-progress/**"
-                        ).hasAnyRole("USER", "TEACHER", "ADMIN")
+                        .requestMatchers("/api/auth/**").permitAll()
 
-                        // ✅ TEACHER endpoints (TEACHER, ADMIN)
-                        .requestMatchers(
-                                "/api/teacher/**"
-                        ).hasAnyRole("TEACHER", "ADMIN")
+                        // ✅ USER APIs (USER/TEACHER/ADMIN can call)
+                        .requestMatchers("/api/lesson-progress/**")
+                        .hasAnyRole("USER", "TEACHER", "ADMIN")
 
-                        // ✅ ADMIN endpoints (ADMIN only)
-                        .requestMatchers(
-                                "/api/admin/**",
-                                "/api/users/**",
-                                "/api/system/**"
-                        ).hasRole("ADMIN")
+                        // ✅ TEACHER APIs (TEACHER/ADMIN can call)
+                        .requestMatchers("/api/teacher/**")
+                        .hasAnyRole("TEACHER", "ADMIN")
 
-                        // Everything else under /api requires at least logged-in
-                        .anyRequest().authenticated()
-                );
+                        // ✅ ADMIN APIs (ADMIN only)
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
+
+                        // everything else: admin
+                        .anyRequest().hasRole("ADMIN")
+                )
+                .addFilterBefore(firebaseFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

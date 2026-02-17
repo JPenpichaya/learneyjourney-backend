@@ -121,14 +121,10 @@ public class CheckoutController {
                 );
             }
 
-            String base = "https://c2381f3bb44f.ngrok-free.app";
-            String successUrl = base + "/stripe-success.html?room=demo";
-            String cancelUrl  = base + "/stripe-cancel.html";
-
             SessionCreateParams.Builder builder = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl(successUrl)   // use server-side config
-                    .setCancelUrl(cancelUrl)     // use server-side config
+                    .setSuccessUrl(request.getSuccessUrl())   // use server-side config
+                    .setCancelUrl(request.getCancelUrl())     // use server-side config
                     .addAllLineItem(lineItems)
                     .putMetadata("userId", userId)        // you'd add this field to your request DTO
                     .putMetadata("courseId", request.getCourseId().toString());
