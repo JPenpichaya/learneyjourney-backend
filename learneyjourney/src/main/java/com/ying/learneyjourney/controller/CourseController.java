@@ -61,7 +61,7 @@ public class CourseController implements MasterController<CourseDto, UUID> {
         return ResponseEntity.ok(courseDetail);
     }
 
-    @PostMapping("/enrolled-courses")
+    @PostMapping("/student/enrolled-courses")
     public ResponseEntity<Page<CourseDto>> getEnrolledCourses(@RequestBody PageCriteria<CourseCriteria> conditions , @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
         return ResponseEntity.ok(courseService.getEnrolledCouresByUserId(conditions, id));

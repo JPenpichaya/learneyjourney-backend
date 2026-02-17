@@ -60,19 +60,19 @@ public class LessonProgressController implements MasterController<LessonProgress
     public ResponseEntity<List<LessonProgressDto>> getByLessonId(@RequestBody UserIdCourseIdRequest request) {
         return ResponseEntity.ok(lessonProgressService.getByCourseId(request.getUserId(), request.getCourseId()));
     }
-    @PostMapping("/get-all-details")
+    @PostMapping("/student/get-all-details")
     public ResponseEntity<List<StudentLessonProgressDto>> getStudentLessonProgress(@RequestBody UUID courseId, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
         return ResponseEntity.ok(lessonProgressService.getStudentLessonProgress(courseId, id));
     }
 
-    @PostMapping("/lastest-update")
+    @PostMapping("/student/lastest-update")
     public ResponseEntity<LatestLessonUpdateResponse> getStudentLatestProgress(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
         return ResponseEntity.ok(lessonProgressService.getLatestUpdateLesson(id));
     }
 
-    @PostMapping("/overall-progress")
+    @PostMapping("/student/overall-progress")
     public ResponseEntity<OverallProgressResponse> getOverallProgressResponseController(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
         return ResponseEntity.ok(lessonProgressService.getOverallProgress(id));
