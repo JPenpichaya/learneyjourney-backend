@@ -51,8 +51,9 @@ public class CourseController implements MasterController<CourseDto, UUID> {
         return ResponseEntity.ok().build();
     }
     @PostMapping("/all/search")
-    public ResponseEntity<Page<CourseDto>> search(@RequestBody PageCriteria<CourseCriteria> conditions) {
-        return ResponseEntity.ok(courseService.search(conditions));
+    public ResponseEntity<Page<CourseDto>> search(@RequestBody PageCriteria<CourseCriteria> conditions, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String userId = authHeader != null ? firebaseAuthUtil.getUserIdFromToken(authHeader): null;
+        return ResponseEntity.ok(courseService.search(conditions, userId));
     }
 
     @PostMapping("/all/details/{courseId}")

@@ -1,5 +1,8 @@
 package com.ying.learneyjourney.service;
 
+import com.ying.learneyjourney.constaint.EnumLessonProgressStatus;
+import com.ying.learneyjourney.constaint.EnumVideoProgressStatus;
+import com.ying.learneyjourney.dto.LessonProgressDto;
 import com.ying.learneyjourney.dto.VideoProgressDto;
 import com.ying.learneyjourney.entity.CourseVideo;
 import com.ying.learneyjourney.entity.VideoProgress;
@@ -14,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +27,8 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
     private final VideoProgressRepository videoProgressRepository;
     private final CourseVideoRepository courseVideoRepository;
     private final UserRepository userRepository;
+    private final LessonProgressService lessonProgressService;
+
     @Override
     public VideoProgressDto create(VideoProgressDto dto) {
         VideoProgress entity = VideoProgressDto.toEntity(dto);
@@ -78,5 +84,21 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
         from.setCourseVideoId(videoProgress.getCourseVideo().getId());
         from.setUserId(videoProgress.getUser().getId());
         return from;
+    }
+
+    public void setVideoProgressAllNotStart(String userId, UUID courseId){
+        videoProgressRepository.insertVideoProgressForCourse(userId, courseId);
+    }
+
+    public void setVideoProgressCompleted(UUID progressId){
+        VideoProgress videoProgress = videoProgressRepository.findById(progressId).orElseThrow(() -> new RuntimeException("VideoProgress not found"));
+        videoProgress.setStatus(EnumVideoProgressStatus.COMPLETED);
+        videoProgressRepository.save(videoProgress);
+        if(videoProgressRepository.areAllVideosInLessonCompleted(videoProgress.getUser().getId(), videoProgress.getCourseVideo().getCourseLesson().getId())){
+            LessonProgressDto lesson = new LessonProgressDto();
+            lesson.setStatus(EnumLessonProgressStatus.COMPLETED);
+            lesson.setCompletedAt(LocalDateTime.now());
+            lessonProgressService.update(videoProgress.getCourseVideo().getCourseLesson().getId(), lesson);
+        }
     }
 }

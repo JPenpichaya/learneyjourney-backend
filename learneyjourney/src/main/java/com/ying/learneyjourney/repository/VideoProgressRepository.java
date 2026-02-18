@@ -4,9 +4,11 @@ import com.ying.learneyjourney.constaint.EnumVideoProgressStatus;
 import com.ying.learneyjourney.entity.VideoProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +59,29 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
             @Param("userId") String userId,
             @Param("status") String status
     );
+
+    @Modifying
+    @Transactional
+    @Query(value = "INSERT INTO video_progress (id, user_id, course_video_id, status, watched_seconds, created_at, updated_at) " +
+            "SELECT gen_random_uuid(), :userId, cv.id, 'NOT_START', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP " +
+            "FROM course_video cv " +
+            "JOIN course_lesson cl ON cv.lesson_id = cl.id " +
+            "WHERE cl.course_id = :courseId " +
+            "AND NOT EXISTS (SELECT 1 FROM video_progress vp WHERE vp.user_id = :userId AND vp.course_video_id = cv.id)", nativeQuery = true)
+    void insertVideoProgressForCourse(@Param("userId") String userId, @Param("courseId") UUID courseId);
+
+    @Query(value = """
+        SELECT
+            (SELECT COUNT(cv.id) FROM course_video cv WHERE cv.lesson_id = :lessonId)
+            =
+            (SELECT COUNT(vp.id)
+             FROM video_progress vp
+             JOIN course_video cv ON vp.course_video_id = cv.id
+             WHERE cv.lesson_id = :lessonId
+               AND vp.user_id = :userId
+               AND vp.status = 'COMPLETED')
+    """, nativeQuery = true)
+    boolean areAllVideosInLessonCompleted(@Param("userId") String userId, @Param("lessonId") UUID lessonId);
 
 
     public interface VideoProgressRow {

@@ -53,4 +53,15 @@ public class VideoProgressController implements MasterController<VideoProgressDt
         return ResponseEntity.ok(videoProgressService.getByLessonId(id, lessonId));
     }
 
+    @PostMapping("/student/update-completed")
+    public ResponseEntity<Void> setVideoProgressCompleted(@RequestBody UUID progressId) {
+        videoProgressService.setVideoProgressCompleted(progressId);
+        return ResponseEntity.ok().build();
+    }
+    @PostMapping("/set-video-progress-not-start")
+    public ResponseEntity<Void> setVideoProgressAllNotStart(@RequestBody UserIdCourseIdRequest request) {
+        videoProgressService.setVideoProgressAllNotStart(request.getUserId(), request.getCourseId());
+        return ResponseEntity.ok().build();
+    }
+
 }

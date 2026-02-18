@@ -17,6 +17,7 @@ import com.ying.learneyjourney.service.PaymentService;
 import com.ying.learneyjourney.service.StripeTransferService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,7 @@ import java.util.*;
 @RequestMapping("/api/checkout")
 @Profile("!test")
 @RequiredArgsConstructor
+@Slf4j
 public class CheckoutController {
 
     @Value("${stripe.success-url}")
@@ -52,6 +54,8 @@ public class CheckoutController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
         String userId;
         String email;
+        String orderId = ordersService.create(request, "PENDING");
+        log.info("About to query purchases by orderId={}", orderId);
 
         if (requireBasicAuth) {
             if (authHeader == null || authHeader.isBlank()) {
@@ -119,6 +123,11 @@ public class CheckoutController {
                                 .setQuantity(Long.valueOf(item.getQty()))
                                 .build()
                 );
+
+                paymentService.savePurchase(
+                        null, null, userId, item.getCourseId(), item.getAmount(),
+                        item.getCurrency(), null, "PENDING", orderId
+                );
             }
 
             SessionCreateParams.Builder builder = SessionCreateParams.builder()
@@ -126,8 +135,7 @@ public class CheckoutController {
                     .setSuccessUrl(request.getSuccessUrl())   // use server-side config
                     .setCancelUrl(request.getCancelUrl())     // use server-side config
                     .addAllLineItem(lineItems)
-                    .putMetadata("userId", userId)        // you'd add this field to your request DTO
-                    .putMetadata("courseId", request.getCourseId().toString());
+                    .putMetadata("orderId", orderId);
 
 //            if(lineItems.stream().anyMatch(li -> li.getPrice().equals("price_1SHfYuP3M4EMXc3By7FzJBg6"))){
 //                builder.setShippingAddressCollection(
@@ -224,7 +232,7 @@ public class CheckoutController {
                 );
 
                 Purchase purchase = paymentService.savePurchase(
-                        null, null, userId, item.getCourseId().toString(), item.getAmount(),
+                        null, null, userId, item.getCourseId(), item.getAmount(),
                         item.getCurrency(), null, "PENDING", orderId
                 );
                 TutorProfile tutorProfile = tutorProfileRepository.findTutorProfileByPurchaseId(purchase.getId()).orElseThrow(() -> new BusinessException("Tutor Stripe account not found for purchase " + purchase.getId(), "TUTOR_STRIPE_ACCOUNT_NOT_FOUND"));

@@ -81,12 +81,12 @@ public class StripeWebhookController {
                 Optional<StripeObject> objectOpt =
                         event.getDataObjectDeserializer().getObject();
 
-                if (objectOpt.isPresent()) {
-                    // ✅ Normal path (older API versions)
-                    Session session = (Session) objectOpt.get();
-                    handleSession(session, event.getId());
-
-                } else {
+//                if (objectOpt.isPresent()) {
+//                    // ✅ Normal path (older API versions)
+//                    Session session = (Session) objectOpt.get();
+//                    handleSession(session, event.getId());
+//
+//                } else {
                     // ⚠️ Fallback path (new API versions)
                     log.warn("⚠️ Stripe SDK could not deserialize event object. Using fallback. eventId={}", event.getId());
 
@@ -94,7 +94,7 @@ public class StripeWebhookController {
                     JsonNode sessionNode = root.path("data").path("object");
 
                     handleSessionFallback(sessionNode, event.getId());
-                }
+//                }
             }
 
             // 5️⃣ ALWAYS return 200 for handled events
@@ -139,15 +139,15 @@ public class StripeWebhookController {
             // 4️⃣ Handle ONLY what you support
             if ("checkout.session.completed".equals(event.getType())) {
 
-                Optional<StripeObject> objectOpt =
-                        event.getDataObjectDeserializer().getObject();
+//                Optional<StripeObject> objectOpt =
+//                        event.getDataObjectDeserializer().getObject();
 
-                if (objectOpt.isPresent()) {
-                    // ✅ Normal path (older API versions)
-                    Session session = (Session) objectOpt.get();
-                    handleSession(session, event.getId());
-
-                } else {
+//                if (objectOpt.isPresent()) {
+//                    // ✅ Normal path (older API versions)
+//                    Session session = (Session) objectOpt.get();
+//                    handleSession(session, event.getId());
+//
+//                } else {
                     // ⚠️ Fallback path (new API versions)
                     log.warn("⚠️ Stripe SDK could not deserialize event object. Using fallback. eventId={}", event.getId());
 
@@ -179,7 +179,7 @@ public class StripeWebhookController {
                         stripeTransferService.update(p, t, "COMPLETED");
                     }
 
-                }
+//                }
             }
 
             // 5️⃣ ALWAYS return 200 for handled events
@@ -222,7 +222,7 @@ public class StripeWebhookController {
                 s.path("amount_total").asLong(),
                 s.path("currency").asText(),
                 eventId,
-                "FAILED",
+                "PAID",
                 s.path("metadata").path("orderId").asText(null)
         );
     }

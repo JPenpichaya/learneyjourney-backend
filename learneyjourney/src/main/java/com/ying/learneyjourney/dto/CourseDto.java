@@ -23,6 +23,7 @@ public class CourseDto implements Serializable {
     private String level;
     private Long lessons;
     private String duration;
+    private Boolean isBuy = false;
 
     public static CourseDto from(com.ying.learneyjourney.entity.Course course) {
         CourseDto dto = new CourseDto();

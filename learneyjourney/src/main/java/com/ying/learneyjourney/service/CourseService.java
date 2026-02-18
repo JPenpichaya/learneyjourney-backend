@@ -71,8 +71,9 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         if(!courseRepository.existsById(uuid)) throw new BusinessException("Course not found", "COURSE_NOT_FOUND");
         courseRepository.deleteById(uuid);
     }
-    public Page<CourseDto> search(PageCriteria<CourseCriteria> condition){
+    public Page<CourseDto> search(PageCriteria<CourseCriteria> condition, String userId){
         Page<Course> all = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
+        List<UUID> enrolls = userId != null ? enrollmentRepository.findBy_UserId(userId).stream().map(Enrollment::getCourse).toList().stream().map(Course::getId).toList() : null;
         return all.map(course -> {
             CourseDto courseDto = new CourseDto();
             CourseVideoRepository.DurationDisplayRow durationDisplay = courseVideoRepository.getCourseDurationDisplay(course.getId());
@@ -81,6 +82,9 @@ public class CourseService implements MasterService<CourseDto, UUID> {
             courseDto = CourseDto.from(course);
             courseDto.setLessons(totalLessons);
             courseDto.setDuration(totalDuration);
+            if(userId != null && enrolls.contains(course.getId())) {
+                courseDto.setIsBuy(true);
+            }
             return courseDto;
         });
     }

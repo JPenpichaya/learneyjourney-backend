@@ -167,4 +167,8 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
         response.setOverall(TimeManagement.calculateWatchPercentage(completedCoursesByUserId, allCoursesByUserId));
         return response;
     }
+
+    public void setLessonProgressAllNotStart(String userId, UUID courseId){
+        lessonProgressRepository.insertLessonProgressForCourse(userId, courseId);
+    }
 }
