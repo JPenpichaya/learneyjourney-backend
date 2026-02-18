@@ -55,7 +55,7 @@ public class CourseController implements MasterController<CourseDto, UUID> {
         return ResponseEntity.ok(courseService.search(conditions));
     }
 
-    @PostMapping("/details/{courseId}")
+    @PostMapping("/all/details/{courseId}")
     public ResponseEntity<CourseInfoResponse> getCourseDetails(@PathVariable  UUID courseId) {
         com.ying.learneyjourney.dto.response.CourseInfoResponse courseDetail = courseService.getCourseDetailById(courseId);
         return ResponseEntity.ok(courseDetail);
@@ -78,7 +78,7 @@ public class CourseController implements MasterController<CourseDto, UUID> {
         return ResponseEntity.ok(courseService.getIsShowCourseOnProfile(profileId));
     }
 
-    @PostMapping("/create-fully")
+    @PostMapping("/teacher/create-fully")
     public ResponseEntity<Void> createCourseFullyController(@RequestBody CreateCourseRequest request){
         courseService.createCourseFully(request);
         return ResponseEntity.ok().build();
