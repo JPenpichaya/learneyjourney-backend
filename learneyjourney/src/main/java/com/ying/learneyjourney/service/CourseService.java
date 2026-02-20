@@ -190,5 +190,4 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         course.setOutcomes(request.getCourseInfo().getOutcomes());
         return course;
     }
-
 }

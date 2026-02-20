@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +49,7 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
         videoProgressRepository.save(videoProgress);
         return dto;
     }
+
 
     @Override
     public VideoProgressDto getById(UUID uuid) {
@@ -94,11 +96,21 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
         VideoProgress videoProgress = videoProgressRepository.findById(progressId).orElseThrow(() -> new RuntimeException("VideoProgress not found"));
         videoProgress.setStatus(EnumVideoProgressStatus.COMPLETED);
         videoProgressRepository.save(videoProgress);
-        if(videoProgressRepository.areAllVideosInLessonCompleted(videoProgress.getUser().getId(), videoProgress.getCourseVideo().getCourseLesson().getId())){
+        UUID lessonId = videoProgress.getCourseVideo().getCourseLesson().getId();
+        if(videoProgressRepository.areAllVideosInLessonCompleted(videoProgress.getUser().getId(), lessonId)){
+            List<UUID> lessonList = new ArrayList<>();
+            lessonList.add(lessonId);
             LessonProgressDto lesson = new LessonProgressDto();
+            lesson.setUserId(videoProgress.getUser().getId());
             lesson.setStatus(EnumLessonProgressStatus.COMPLETED);
             lesson.setCompletedAt(LocalDateTime.now());
-            lessonProgressService.update(videoProgress.getCourseVideo().getCourseLesson().getId(), lesson);
+            lessonProgressService.updateLessonProgress(lessonList, lesson);
         }
     }
+
+    public void updateLastWatchedAt(UUID id){
+        videoProgressRepository.updateLastWatchedAt(id);
+    }
+
+
 }

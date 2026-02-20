@@ -63,10 +63,13 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
 
     @Modifying
     @Transactional
-    @Query(value = "INSERT INTO lesson_progress (id, user_id, course_lesson_id, status) " +
-            "SELECT gen_random_uuid(), :userId, cl.id, 'NOT_START' " +
-            "FROM course_lesson cl " +
-            "WHERE cl.course_id = :courseId " +
-            "AND NOT EXISTS (SELECT 1 FROM lesson_progress lp WHERE lp.user_id = :userId AND lp.course_lesson_id = cl.id)", nativeQuery = true)
-    void insertLessonProgressForCourse(@Param("userId") String userId, @Param("courseId") UUID courseId);
+    @Query(value = """
+    INSERT INTO lesson_progress (id, user_id, course_lesson_id, status)
+    SELECT gen_random_uuid(), :userId, cl.id, 'NOT_START'
+    FROM course_lesson cl
+    WHERE cl.course_id = :courseId
+    ON CONFLICT (user_id, course_lesson_id) DO NOTHING
+    """, nativeQuery = true)
+    int insertLessonProgressForCourse(@Param("userId") String userId,
+                                      @Param("courseId") UUID courseId);
 }

@@ -64,7 +64,9 @@ public class SecurityConfig {
 
                         // ✅ USER APIs (USER/TEACHER/ADMIN can call)
                         .requestMatchers("/api/lesson-progress/**",
-                                "/api/users/get-info", "/api/lesson-progress/student/**", "/api/course/student/**")
+                                "/api/users/get-info", "/api/lesson-progress/student/**",
+                                "/api/course/student/**", "/api/video-progress/**",
+                                "/api/student-notes/**")
                         .hasAnyRole("USER", "TEACHER", "ADMIN")
 
                         // ✅ TEACHER APIs (TEACHER/ADMIN can call)

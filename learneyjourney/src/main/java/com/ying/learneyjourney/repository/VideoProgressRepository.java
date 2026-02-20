@@ -26,7 +26,7 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
 
     @Query(value = """
                 SELECT
-                  cv.id                AS id,
+                  vp.id                AS id,
                   cl.description       AS description,
                   vp.status            AS status,
                   vp.watched_seconds   AS completedAt,
@@ -50,7 +50,7 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
         FROM video_progress 
         WHERE user_id = :userId 
           AND status = :status 
-        ORDER BY updated_at DESC 
+        ORDER BY last_watched_at DESC 
         LIMIT 1
     """,
             nativeQuery = true
@@ -82,6 +82,11 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
                AND vp.status = 'COMPLETED')
     """, nativeQuery = true)
     boolean areAllVideosInLessonCompleted(@Param("userId") String userId, @Param("lessonId") UUID lessonId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE video_progress SET last_watched_at = CURRENT_TIMESTAMP WHERE id = :videoProgressId", nativeQuery = true)
+    void updateLastWatchedAt(@Param("videoProgressId") UUID videoProgressId);
 
 
     public interface VideoProgressRow {

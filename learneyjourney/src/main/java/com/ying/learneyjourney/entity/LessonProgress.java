@@ -1,6 +1,7 @@
 package com.ying.learneyjourney.entity;
 
 import com.ying.learneyjourney.constaint.EnumLessonProgressStatus;
+import com.ying.learneyjourney.untils.Auditable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "lesson_progress")
-public class LessonProgress {
+public class LessonProgress extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)

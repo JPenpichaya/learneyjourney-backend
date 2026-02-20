@@ -52,61 +52,87 @@ public class StripeWebhookController {
 
     @PostMapping("/webhook")
     public ResponseEntity<String> webhook(HttpServletRequest request) {
-
+        String payload;
         try {
-            // 1️⃣ Read RAW payload (CRITICAL)
-            String payload = request.getReader()
-                    .lines()
-                    .collect(Collectors.joining("\n"));
-
-            // 2️⃣ Read Stripe signature header
-            String sigHeader = request.getHeader("Stripe-Signature");
-            if (sigHeader == null) {
-                log.error("❌ Missing Stripe-Signature header");
-                return ResponseEntity.badRequest().body("Missing Stripe-Signature");
-            }
-
-            // 3️⃣ Verify + construct event
-            Event event = Webhook.constructEvent(
-                    payload,
-                    sigHeader,
-                    webhookSecret
+            // 1) Read RAW body bytes (Stripe signs this exact content)
+            payload = new String(
+                    request.getInputStream().readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8
             );
+        } catch (Exception e) {
+            log.error("⚠️ Could not read request body", e);
+            return ResponseEntity.badRequest().body("Invalid payload");
+        }
 
-            log.info("✅ Stripe webhook received: id={}, type={}", event.getId(), event.getType());
+        // 2) Read signature header
+        String sigHeader = request.getHeader("Stripe-Signature");
+        if (sigHeader == null) {
+            log.error("❌ Missing Stripe-Signature header");
+            return ResponseEntity.badRequest().body("Missing Stripe-Signature");
+        }
 
-            // 4️⃣ Handle ONLY what you support
-            if ("checkout.session.completed".equals(event.getType())) {
+        // (Optional) helpful debug while you fix it
+        log.info("WEBHOOK HIT uri={} payloadLen={} sigLen={}",
+                request.getRequestURI(),
+                payload.length(),
+                sigHeader.length()
+        );
 
-                Optional<StripeObject> objectOpt =
-                        event.getDataObjectDeserializer().getObject();
-
-//                if (objectOpt.isPresent()) {
-//                    // ✅ Normal path (older API versions)
-//                    Session session = (Session) objectOpt.get();
-//                    handleSession(session, event.getId());
-//
-//                } else {
-                    // ⚠️ Fallback path (new API versions)
-                    log.warn("⚠️ Stripe SDK could not deserialize event object. Using fallback. eventId={}", event.getId());
-
-                    JsonNode root = objectMapper.readTree(payload);
-                    JsonNode sessionNode = root.path("data").path("object");
-
-                    handleSessionFallback(sessionNode, event.getId());
-//                }
-            }
-
-            // 5️⃣ ALWAYS return 200 for handled events
-            return ResponseEntity.ok("ok");
+        Event event;
+        try {
+            // 3) Verify signature (trim helps when env var has trailing newline)
+            String secret = webhookSecret == null ? null : webhookSecret.trim();
+            event = Webhook.constructEvent(payload, sigHeader, secret);
 
         } catch (SignatureVerificationException e) {
             log.error("❌ Invalid Stripe signature", e);
             return ResponseEntity.status(400).body("Invalid signature");
 
         } catch (Exception e) {
-            // IMPORTANT: still return 200 to avoid infinite retries
-            log.error("❌ Stripe webhook error", e);
+            // Includes JSON parse errors, etc.
+            log.error("⚠️ Webhook error while parsing/verifying event", e);
+            return ResponseEntity.badRequest().body("Webhook error");
+        }
+
+        log.info("✅ Stripe webhook verified: id={}, type={}", event.getId(), event.getType());
+
+        // 4) Deserialize nested object (same pattern as Stripe sample)
+        StripeObject stripeObject = null;
+        try {
+            var deserializer = event.getDataObjectDeserializer();
+            Optional<StripeObject> objOpt = deserializer.getObject();
+            if (objOpt.isPresent()) {
+                stripeObject = objOpt.get();
+            } else {
+                // API version mismatch or new fields; use fallback JSON
+                log.warn("⚠️ Could not deserialize event object. Using fallback JSON. eventId={}", event.getId());
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ Exception during event object deserialization. Using fallback JSON. eventId={}", event.getId(), e);
+        }
+
+        // 5) Handle events (keep it tight + idempotent)
+        try {
+            switch (event.getType()) {
+                case "checkout.session.completed" -> {
+                    if (stripeObject instanceof Session session) {
+                        handleSession(session, event.getId());
+                    } else {
+                        // fallback JSON path (like your current code)
+                        JsonNode root = objectMapper.readTree(payload);
+                        JsonNode sessionNode = root.path("data").path("object");
+                        handleSessionFallback(sessionNode, event.getId());
+                    }
+                }
+                default -> log.info("Unhandled event type: {}", event.getType());
+            }
+
+            // Stripe expects 2xx if successfully received
+            return ResponseEntity.ok("ok");
+
+        } catch (Exception e) {
+            // If you return non-2xx, Stripe retries (sometimes desirable, sometimes not)
+            log.error("❌ Error handling webhook event id={}", event.getId(), e);
             return ResponseEntity.ok("error handled");
         }
     }
@@ -139,15 +165,15 @@ public class StripeWebhookController {
             // 4️⃣ Handle ONLY what you support
             if ("checkout.session.completed".equals(event.getType())) {
 
-//                Optional<StripeObject> objectOpt =
-//                        event.getDataObjectDeserializer().getObject();
+                Optional<StripeObject> objectOpt =
+                        event.getDataObjectDeserializer().getObject();
 
-//                if (objectOpt.isPresent()) {
-//                    // ✅ Normal path (older API versions)
-//                    Session session = (Session) objectOpt.get();
-//                    handleSession(session, event.getId());
-//
-//                } else {
+                if (objectOpt.isPresent()) {
+                    // ✅ Normal path (older API versions)
+                    Session session = (Session) objectOpt.get();
+                    handleSession(session, event.getId());
+
+                } else {
                     // ⚠️ Fallback path (new API versions)
                     log.warn("⚠️ Stripe SDK could not deserialize event object. Using fallback. eventId={}", event.getId());
 
@@ -179,7 +205,7 @@ public class StripeWebhookController {
                         stripeTransferService.update(p, t, "COMPLETED");
                     }
 
-//                }
+                }
             }
 
             // 5️⃣ ALWAYS return 200 for handled events

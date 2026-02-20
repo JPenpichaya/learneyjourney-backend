@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.controller;
 
+import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.criteria.StudentNoteCriteria;
 import com.ying.learneyjourney.dto.StudentNoteDto;
 import com.ying.learneyjourney.entity.StudentNote;
@@ -10,11 +11,9 @@ import com.ying.learneyjourney.service.StudentNoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +23,7 @@ import java.util.UUID;
 @RequestMapping("/api/student-notes")
 public class StudentNoteController implements MasterController<StudentNoteDto, UUID> {
     private final StudentNoteService studentNoteService;
+    private final FirebaseAuthUtil firebaseAuthUtil;
     @Override
     public ResponseEntity<StudentNoteDto> getById(UUID uuid) {
         return ResponseEntity.ok(studentNoteService.getById(uuid));
@@ -52,5 +52,10 @@ public class StudentNoteController implements MasterController<StudentNoteDto, U
     @PostMapping("/search-list")
     public ResponseEntity<List<StudentNoteDto>> searchList(@RequestBody PageCriteria<StudentNoteCriteria> conditions) {
         return ResponseEntity.ok(studentNoteService.getAllList(conditions));
+    }
+    @PostMapping("/create-update")
+    public ResponseEntity<StudentNoteDto> createUpdate(@RequestBody StudentNoteDto body, @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String id = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return ResponseEntity.ok(studentNoteService.createUpdate(body, id));
     }
 }

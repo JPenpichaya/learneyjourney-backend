@@ -12,7 +12,6 @@ import com.ying.learneyjourney.dto.response.OverallProgressResponse;
 import com.ying.learneyjourney.entity.*;
 import com.ying.learneyjourney.master.BusinessException;
 import com.ying.learneyjourney.master.MasterService;
-import com.ying.learneyjourney.master.SearchCriteria;
 
 import com.ying.learneyjourney.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +45,12 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
 
     @Override
     public LessonProgressDto update(UUID uuid, LessonProgressDto dto) {
-        LessonProgress lessonProgress = lessonProgressRepository.findById(uuid).orElseThrow(() -> new IllegalArgumentException("Lesson progress not found"));
+        return null;
+    }
+
+    public LessonProgressDto updateLessonProgress(List<UUID> uuidList, LessonProgressDto dto) {
+        List<LessonProgress> lessonProgressList = lessonProgressRepository.findByCourseLessonIdInAndUserId(uuidList, dto.getUserId());
+        LessonProgress lessonProgress = lessonProgressList.getFirst();
         lessonProgress.setStatus(dto.getStatus());
         lessonProgress.setCompletedAt(dto.getCompletedAt());
         lessonProgressRepository.save(lessonProgress);
@@ -89,20 +93,30 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
 
     public FullCourseProgressDto getFullCourseProgress(UUID courseId, String userId) {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new BusinessException("Course not found", "COURSE_NOT_FOUND"));
+        
         List<CourseLesson> lessons = courseLessonRepository.findByCourse(courseId);
-        List<UUID> ids = lessons.stream().map(CourseLesson::getId).toList();
-        List<LessonProgress> progresses = lessonProgressRepository.findByCourseLessonIdInAndUserId(ids, userId);
-        long completedLessons = progresses.stream().filter(lp -> EnumLessonProgressStatus.COMPLETED.equals(lp.getStatus())).count();
-        long allLessons = lessons.size();
-        int percent = (allLessons == 0) ? 0 : (int)((completedLessons * 100) / allLessons);
+        List<UUID> lessonIds = lessons.stream().map(CourseLesson::getId).toList();
+        
+        List<CourseVideo> allCourseVideos = courseVideoRepository.findByLessonIds(lessonIds);
+        List<UUID> allVideoIds = allCourseVideos.stream().map(CourseVideo::getId).toList();
+
+        List<VideoProgress> userVideoProgresses = videoProgressRepository.findByUserIdAndVideoIdIn(userId, allVideoIds);
+
+        long totalVideos = allCourseVideos.size();
+        long completedVideos = userVideoProgresses.stream()
+                                    .filter(vp -> EnumVideoProgressStatus.COMPLETED.equals(vp.getStatus()))
+                                    .count();
+        
+        int percent = (totalVideos == 0) ? 0 : (int)((completedVideos * 100) / totalVideos);
+        
         FullCourseProgressDto dto = new FullCourseProgressDto();
         dto.setCourseId(courseId);
         dto.setCourseTitle(course.getTitle());
         dto.setCourseSubtitle(course.getSubtitle());
         dto.setUserId(userId);
         dto.setCompletedPercentage(percent);
-        dto.setTotalLessons(allLessons);
-        dto.setCompletedLessons(completedLessons);
+        dto.setTotalLessons(totalVideos); // Renamed to reflect video count
+        dto.setCompletedLessons(completedVideos); // Renamed to reflect video count
         return dto;
     }
 
