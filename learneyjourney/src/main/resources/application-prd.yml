@@ -1,24 +1,34 @@
+server:
+  port: ${PORT:8080}
+  address: 0.0.0.0
 spring:
-  url: ${DATABASE_URL}
-  username: ${DATABASE_USERNAME}   # e.g. postgres
-  password: ${DATABASE_PASSWORD}
-  hikari:
-    maximum-pool-size: 5
-    minimum-idle: 1
-    idle-timeout: 60000
-    connection-timeout: 20000
-    max-lifetime: 1800000
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}  # e.g. postgres
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 60000
+      connection-timeout: 20000
+      max-lifetime: 1800000
   mail:
-    host: ${EMAIL_HOST}
-    port: ${EMAIL_PORT}
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
+    host: smtp.hostinger.com
+    port: 465
+    username: no-reply@learneyjourney.com
+    password: ${SPRING_EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
-          starttls:
+          ssl:
             enable: true
+          starttls:
+            enable: false
+  jpa:
+    hibernate:
+      ddl-auto: update
 logging:
   level:
     root: info
@@ -28,5 +38,11 @@ stripe:
   success-url: "https://learneyjourney.com/payment/success"
   cancel-url: "https://learneyjourney.com/payment/cancel"
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  apiBase: "https://api.stripe.com"
+gcs:
+  bucket: learney-media-dev
 app:
-  allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173"
+  baseUrl: "https://learneyjourney.com"
+  backendUrl: "https://learney-journey-24285490035.asia-southeast1.run.app"
+  allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173, https://learney-frontend-dev-24285490035.asia-southeast1.run.app"
+  require-basic-auth: true

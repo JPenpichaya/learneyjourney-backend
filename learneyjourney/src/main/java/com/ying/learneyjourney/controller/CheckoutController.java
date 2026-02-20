@@ -34,12 +34,6 @@ import java.util.*;
 @Slf4j
 public class CheckoutController {
 
-    @Value("${stripe.success-url}")
-    private String successUrl;
-
-    @Value("${stripe.cancel-url}")
-    private String cancelUrl;
-
     private final PaymentService paymentService;
     private final OrdersService ordersService;
     private final StripeTransferService stripeTransferService;
@@ -241,8 +235,8 @@ public class CheckoutController {
 
             SessionCreateParams.Builder builder = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl(successUrl)   // use server-side config
-                    .setCancelUrl(cancelUrl)     // use server-side config
+                    .setSuccessUrl(request.getSuccessUrl())   // use server-side config
+                    .setCancelUrl(request.getCancelUrl())     // use server-side config
                     .addAllLineItem(lineItems)
                     .putMetadata("orderId", orderId);
 

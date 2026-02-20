@@ -5,6 +5,7 @@ import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.repository.CourseRepository;
 import com.ying.learneyjourney.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

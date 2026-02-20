@@ -27,7 +27,7 @@ public class FileUploadService {
     private final Storage storage;
     private final MediaAssetRepository mediaAssetRepository;
 
-    @Value("${gcs.bucket}")
+    @Value("${gcs.bucket:learney-media-dev}")
     private String bucket;
 
     @Value("${gcs.public-base-url:https://storage.googleapis.com}")
