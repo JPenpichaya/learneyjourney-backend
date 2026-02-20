@@ -108,9 +108,9 @@ public class VideoProgressService implements MasterService<VideoProgressDto, UUI
         }
     }
 
-    public void updateLastWatchedAt(UUID id){
+    public void updateStatusToProgress(UUID id){
+        videoProgressRepository.updateStatusToProgress(id);
         videoProgressRepository.updateLastWatchedAt(id);
     }
-
 
 }

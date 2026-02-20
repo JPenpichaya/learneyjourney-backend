@@ -15,4 +15,6 @@ public class VideoProgressRowDto {
     private String url;
     private String duration;
     private Integer position;
+    private String worksheet;
+    private String contact;
 }

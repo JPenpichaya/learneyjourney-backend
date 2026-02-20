@@ -29,5 +29,7 @@ public class CourseVideo extends Auditable {
     private Integer position;
     @Column(name="worksheet")
     private String worksheet;
+    @Column(name="contact")
+    private String contact;
 
 }

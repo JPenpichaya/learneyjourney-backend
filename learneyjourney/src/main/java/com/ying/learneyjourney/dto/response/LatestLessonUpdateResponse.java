@@ -16,7 +16,7 @@ public class LatestLessonUpdateResponse {
         private UUID id;
         private String title;
         private Integer lastAtLesson;
-        private Integer progress;
+        private long progress;
         private String duration;
     }
 

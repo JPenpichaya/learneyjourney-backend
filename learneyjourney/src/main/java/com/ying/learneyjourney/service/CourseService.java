@@ -32,6 +32,7 @@ public class CourseService implements MasterService<CourseDto, UUID> {
     private final CourseLessonRepository courseLessonRepository;
     private final CourseVideoRepository courseVideoRepository;
     private final VideoProgressRepository videoProgressRepository;
+    private final LessonProgressService lessonProgressService;
     @Override
     public CourseDto create(CourseDto dto) {
         TutorProfile profile = tutorProfileRepository.findById(dto.getTutorProfileId()).orElseThrow(() -> new IllegalArgumentException("Tutor Profile not found"));
@@ -80,6 +81,7 @@ public class CourseService implements MasterService<CourseDto, UUID> {
             String totalDuration = durationDisplay != null ? String.format("%s %s", durationDisplay.getDisplayValue(), durationDisplay.getDisplayUnit()) : "0 mins";
             Long totalLessons = courseLessonRepository.countByCourseId(course.getId());
             courseDto = CourseDto.from(course);
+            courseDto.setTutorName(course.getTutorProfile().getUser().getDisplayName());
             courseDto.setLessons(totalLessons);
             courseDto.setDuration(totalDuration);
             if(userId != null && enrolls.contains(course.getId())) {
@@ -120,7 +122,11 @@ public class CourseService implements MasterService<CourseDto, UUID> {
     public Page<CourseDto> getEnrolledCouresByUserId(PageCriteria<CourseCriteria> condition, String userId){
         condition.getCondition().setUserId(userId);
         Page<Course> courses = courseRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
-        return courses.map(CourseDto::from);
+        return courses.map(course -> {
+            CourseDto courseDto = CourseDto.from(course);
+            courseDto.setProgress(lessonProgressService.getFullCourseProgress(course.getId(), userId).getCompletedPercentage());
+            return courseDto;
+        });
     }
 
     public CourseDto getLatestProgressCourse(String userId){

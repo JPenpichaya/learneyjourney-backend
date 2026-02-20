@@ -24,6 +24,7 @@ public class CourseDto implements Serializable {
     private Long lessons;
     private String duration;
     private Boolean isBuy = false;
+    private long progress;
 
     public static CourseDto from(com.ying.learneyjourney.entity.Course course) {
         CourseDto dto = new CourseDto();

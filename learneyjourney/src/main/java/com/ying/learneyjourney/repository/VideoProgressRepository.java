@@ -33,7 +33,9 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
                   cv.title             AS title,
                   cv.url               AS url,
                   cv.duration          AS duration,
-                  cv.position          AS position
+                  cv.position          AS position,
+                  cv.worksheet         AS worksheet,
+                  cv.contact           AS contact
                 FROM video_progress vp
                 JOIN course_video cv   ON cv.id = vp.course_video_id
                 JOIN course_lesson cl  ON cl.id = cv.lesson_id
@@ -59,6 +61,21 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
             @Param("userId") String userId,
             @Param("status") String status
     );
+
+    @Query(value = """
+        SELECT * FROM video_progress
+        WHERE user_id = :userId AND (status = 'PROGRESS' OR status = 'NOT_START')
+        ORDER BY
+          CASE status
+            WHEN 'PROGRESS' THEN 1
+            WHEN 'NOT_START' THEN 2
+            ELSE 3
+          END,
+          last_watched_at DESC NULLS LAST,
+          updated_at DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<VideoProgress> findNextVideoProgressForUser(@Param("userId") String userId);
 
     @Modifying
     @Transactional
@@ -88,6 +105,11 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
     @Query(value = "UPDATE video_progress SET last_watched_at = CURRENT_TIMESTAMP WHERE id = :videoProgressId", nativeQuery = true)
     void updateLastWatchedAt(@Param("videoProgressId") UUID videoProgressId);
 
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE video_progress SET status = 'PROGRESS' WHERE id = :videoProgressId AND status = 'NOT_START'", nativeQuery = true)
+    void updateStatusToProgress(@Param("videoProgressId") UUID videoProgressId);
+
 
     public interface VideoProgressRow {
         UUID getId();
@@ -105,5 +127,7 @@ public interface VideoProgressRepository extends JpaRepository<VideoProgress, UU
         Integer getDuration();
 
         Integer getPosition();
+        String getWorksheet();
+        String getContact();
     }
 }

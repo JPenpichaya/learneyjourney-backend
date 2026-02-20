@@ -14,6 +14,7 @@ public class CourseVideoDto implements Serializable {
     private Integer duration;
     private Integer position;
     private String worksheet;
+    private String contact;
 
     public static CourseVideoDto from(com.ying.learneyjourney.entity.CourseVideo video) {
         CourseVideoDto dto = new CourseVideoDto();
@@ -24,6 +25,7 @@ public class CourseVideoDto implements Serializable {
         dto.setPosition(video.getPosition());
         dto.setLessonId(video.getCourseLesson() != null ? video.getCourseLesson().getId() : null);
         dto.setWorksheet(video.getWorksheet());
+        dto.setContact(video.getContact());
         return dto;
     }
 
@@ -34,6 +36,7 @@ public class CourseVideoDto implements Serializable {
         video.setDuration(dto.getDuration());
         video.setPosition(dto.getPosition());
         video.setWorksheet(dto.getWorksheet());
+        video.setContact(dto.getContact());
         return video;
     }
 }

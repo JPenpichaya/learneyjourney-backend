@@ -64,4 +64,10 @@ public class VideoProgressController implements MasterController<VideoProgressDt
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/student/update-status-to-progress/{progressId}")
+    public ResponseEntity<Void> setVideoProgressToProgress(@PathVariable UUID progressId) {
+        videoProgressService.updateStatusToProgress(progressId);
+        return ResponseEntity.ok().build();
+    }
+
 }

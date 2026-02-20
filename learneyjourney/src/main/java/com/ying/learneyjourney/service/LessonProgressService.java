@@ -142,6 +142,8 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
                 videoDto.setUrl(row.getUrl());
                 videoDto.setDuration(TimeManagement.formatSecondsToHMS(row.getDuration()));
                 videoDto.setPosition(row.getPosition());
+                videoDto.setWorksheet(row.getWorksheet());
+                videoDto.setContact(row.getContact());
                 videoDtos.add(videoDto);
             }
             dto.setPosition(lesson.getPosition());
@@ -156,16 +158,17 @@ public class LessonProgressService implements MasterService<LessonProgressDto, U
 
     public LatestLessonUpdateResponse getLatestUpdateLesson(String userId){
         LatestLessonUpdateResponse response = new LatestLessonUpdateResponse();
-        VideoProgress videoProgress = videoProgressRepository.findFirstByUserIdAndStatusOrderByUpdatedAtDesc(userId, EnumVideoProgressStatus.PROGRESS.name());
+        VideoProgress videoProgress = videoProgressRepository.findNextVideoProgressForUser(userId).orElse(null);
         List<LatestLessonUpdateResponse.Course> courseList = new ArrayList<>();
         if(videoProgress == null) return response;
         CourseVideo courseVideo = videoProgress.getCourseVideo();
+        FullCourseProgressDto fullCourseProgress = getFullCourseProgress(courseVideo.getCourseLesson().getCourse().getId(), userId);
         LatestLessonUpdateResponse.Course course = new LatestLessonUpdateResponse.Course();
-        course.setTitle(course.getTitle());
-        course.setId(courseVideo.getId());
+        course.setTitle(courseVideo.getTitle());
+        course.setId(courseVideo.getCourseLesson().getCourse().getId());
         course.setLastAtLesson(courseVideo.getCourseLesson().getPosition());
         course.setDuration(courseVideo.getDuration() == null ? null : TimeManagement.formatSecondsToHMS(courseVideo.getDuration()));
-        course.setProgress(courseVideo.getDuration() == null || videoProgress.getWatchedSeconds() == null ? 0 : TimeManagement.calculateWatchPercentage(videoProgress.getWatchedSeconds(), courseVideo.getDuration()));
+        course.setProgress(fullCourseProgress.getCompletedPercentage());
         courseList.add(course);
         response.setCourse(courseList);
         return response;
