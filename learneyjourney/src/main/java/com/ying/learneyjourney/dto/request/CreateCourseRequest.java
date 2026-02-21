@@ -95,5 +95,6 @@ public class CreateCourseRequest {
         private String worksheet;
         private String contact;
 
+
     }
 }
