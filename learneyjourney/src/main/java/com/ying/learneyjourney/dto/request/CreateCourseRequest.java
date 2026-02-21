@@ -90,5 +90,10 @@ public class CreateCourseRequest {
 
         @NotNull
         private Integer position;
+        @NotBlank
+        private Integer duration;
+        private String worksheet;
+        private String contact;
+
     }
 }
