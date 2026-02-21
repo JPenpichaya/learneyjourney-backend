@@ -172,7 +172,9 @@ public class CourseService implements MasterService<CourseDto, UUID> {
                 video.setCourseLesson(lesson);
                 video.setTitle(videoInfo.getTitle());
                 video.setUrl(videoInfo.getUrl());
+                video.setDuration(videoInfo.getDuration());
                 video.setPosition(positionVideo);
+                video.setContact(videoInfo.getContact());
                 courseVideoRepository.save(video);
                 positionVideo++;
             }
