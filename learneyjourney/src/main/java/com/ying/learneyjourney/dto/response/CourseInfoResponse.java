@@ -19,6 +19,7 @@ public class CourseInfoResponse {
     private Double rate;
     private String students;
     private TutorProfile tutorProfile;
+    private String priceId;
 
     @Data
     public static class TutorProfile {

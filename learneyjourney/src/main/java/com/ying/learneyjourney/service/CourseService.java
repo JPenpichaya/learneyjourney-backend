@@ -110,6 +110,7 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         detailDto.setLessons(totalLessons);
         detailDto.setOutcomes(course.getOutcomes());
         detailDto.setRate(averageRating);
+        detailDto.setPriceId(course.getPriceId());
         detailDto.setStudents(String.format("%s students", totalEnrollments));
         CourseInfoResponse.TutorProfile tutorProfile = new CourseInfoResponse.TutorProfile();
         tutorProfile.setName(course.getTutorProfile().getUser().getDisplayName());
