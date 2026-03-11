@@ -24,4 +24,9 @@ public interface TutorProfileRepository extends JpaRepository<TutorProfile, UUID
             """, nativeQuery = true)
     Optional<TutorProfile> findTutorProfileByPurchaseId(@Param("purchaseId") UUID purchaseId);
 
+    @Query("select t from TutorProfile t where t.stripeConnectAccountId = ?1")
+    Optional<TutorProfile> findByStripeConnectAccountId(String stripeConnectAccountId);
+
+    @Query("select t from TutorProfile t where t.stripeIdentitySessionId = ?1")
+    Optional<TutorProfile> findByStripeIdentitySessionId(String stripeIdentitySessionId);
 }

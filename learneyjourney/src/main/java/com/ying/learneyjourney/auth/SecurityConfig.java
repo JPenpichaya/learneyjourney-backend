@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/lesson-progress/**",
                                 "/api/users/get-info", "/api/lesson-progress/student/**",
                                 "/api/course/student/**", "/api/video-progress/**",
+                                "/api/tutor-applications/**",
                                 "/api/student-notes/**")
                         .hasAnyRole("USER", "TEACHER", "ADMIN")
 

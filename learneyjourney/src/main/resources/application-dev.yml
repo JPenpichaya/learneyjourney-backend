@@ -28,6 +28,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  flyway:
+    baseline-on-migrate: true
 logging:
   level:
     root: info
@@ -38,6 +40,10 @@ stripe:
   cancel-url: "https://learneyjourney.com/payment/cancel"
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
   apiBase: "https://api.stripe.com"
+  return-url: http://localhost:5173/tutor/verification-return
+  connect:
+    refresh-url: http://localhost:5173/tutor/connect/refresh
+    return-url: http://localhost:5173/tutor/connect/return
 gcs:
   bucket: learney-media-dev
 app:

@@ -4,11 +4,14 @@ import com.ying.learneyjourney.entity.SocialMediaPost;
 import com.ying.learneyjourney.master.SearchCriteria;
 import jakarta.persistence.criteria.Predicate;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class SocialMediaPostCriteria extends SearchCriteria<SocialMediaPost> {
     private UUID tutorId;

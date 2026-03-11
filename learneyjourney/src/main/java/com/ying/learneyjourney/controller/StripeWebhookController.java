@@ -3,12 +3,16 @@ package com.ying.learneyjourney.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.Account;
 import com.stripe.model.Event;
 import com.stripe.model.StripeObject;
 import com.stripe.model.Transfer;
 import com.stripe.model.checkout.Session;
+import com.stripe.model.identity.VerificationSession;
 import com.stripe.net.Webhook;
 import com.stripe.param.TransferCreateParams;
+import com.ying.learneyjourney.config.StripeConfig;
+import com.ying.learneyjourney.constaint.EnumIdentityStatus;
 import com.ying.learneyjourney.dto.PurchaseDto;
 import com.ying.learneyjourney.entity.Orders;
 import com.ying.learneyjourney.entity.Purchase;
@@ -20,12 +24,14 @@ import com.ying.learneyjourney.repository.PurchaseRepository;
 import com.ying.learneyjourney.repository.StripeTransferRepository;
 import com.ying.learneyjourney.repository.TutorProfileRepository;
 import com.ying.learneyjourney.service.PaymentService;
+import com.ying.learneyjourney.service.StripeConnectService;
 import com.ying.learneyjourney.service.StripeTransferService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +55,9 @@ public class StripeWebhookController {
     private final PurchaseRepository purchaseRepository;
     private final TutorProfileRepository tutorProfileRepository;
     private final StripeTransferService stripeTransferService;
+    private final StripeConfig stripeProperties;
+    private final TutorProfileRepository repository;
+    private final StripeConnectService stripeConnectService;
 
     @PostMapping("/webhook")
     public ResponseEntity<String> webhook(HttpServletRequest request) {
@@ -251,5 +260,40 @@ public class StripeWebhookController {
                 "PAID",
                 s.path("metadata").path("orderId").asText(null)
         );
+    }
+
+    @PostMapping
+    public ResponseEntity<String> handle(@RequestBody String payload,
+                                         @RequestHeader("Stripe-Signature") String sigHeader) throws Exception {
+        final Event event;
+        try {
+            event = Webhook.constructEvent(payload, sigHeader, stripeProperties.getWebhookSecret());
+        } catch (SignatureVerificationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
+        }
+
+        String type = event.getType();
+        StripeObject stripeObject = event.getDataObjectDeserializer().getObject().orElse(null);
+
+        if ("identity.verification_session.verified".equals(type) && stripeObject instanceof VerificationSession session) {
+            tutorProfileRepository.findByStripeIdentitySessionId(session.getId()).ifPresent(app -> {
+                app.setIdentityStatus(EnumIdentityStatus.VERIFIED);
+                app.setStripeIdentityVerificationReportId(session.getLastVerificationReport());
+                repository.save(app);
+            });
+        }
+
+        if ("identity.verification_session.requires_input".equals(type) && stripeObject instanceof VerificationSession session) {
+            repository.findByStripeIdentitySessionId(session.getId()).ifPresent(app -> {
+                app.setIdentityStatus(EnumIdentityStatus.FAILED);
+                repository.save(app);
+            });
+        }
+
+        if (("account.updated".equals(type) || "capability.updated".equals(type)) && stripeObject instanceof Account account) {
+            stripeConnectService.refreshAccountState(account.getId());
+        }
+
+        return ResponseEntity.ok("received");
     }
 }

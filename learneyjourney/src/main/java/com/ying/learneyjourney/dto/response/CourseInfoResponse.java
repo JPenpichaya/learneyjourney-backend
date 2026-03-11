@@ -25,5 +25,6 @@ public class CourseInfoResponse {
     public static class TutorProfile {
         private String name;
         private String title;
+        private String photoUrl;
     }
 }

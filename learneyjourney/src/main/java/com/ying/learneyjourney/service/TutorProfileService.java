@@ -2,7 +2,10 @@ package com.ying.learneyjourney.service;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.ying.learneyjourney.constaint.EnumApplicationStatus;
 import com.ying.learneyjourney.dto.TutorProfilesDto;
+import com.ying.learneyjourney.dto.request.CreateTutorApplicationRequest;
+import com.ying.learneyjourney.dto.request.UpdateTutorCredentialsRequest;
 import com.ying.learneyjourney.entity.TutorProfile;
 import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.master.MasterService;
@@ -10,6 +13,8 @@ import com.ying.learneyjourney.master.SearchCriteria;
 
 import com.ying.learneyjourney.repository.TutorProfileRepository;
 import com.ying.learneyjourney.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -69,5 +74,53 @@ public class TutorProfileService implements MasterService<TutorProfilesDto, UUID
 
     public void makeTutor(String userId) throws FirebaseAuthException {
         FirebaseAuth.getInstance().setCustomUserClaims(userId, Map.of("role", "TEACHER"));
+    }
+
+    @Transactional
+    public TutorProfile createTutor(CreateTutorApplicationRequest request, String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        TutorProfile app = new TutorProfile();
+                app.setFullName(request.fullName());
+                app.setUser(user);
+                app.setEmail(request.email());
+                app.setPhoneNumber(request.phoneNumber());
+                app.setCountry(request.country());
+                app.setSubjects(request.subjects());
+                app.setYearsExperience(request.yearsExperience());
+                app.setTeachingBio(request.teachingBio());
+                app.setStatus(EnumApplicationStatus.DRAFT);
+        return tutorProfileRepository.save(app);
+    }
+
+    @Transactional()
+    public TutorProfile get(UUID id) {
+        return tutorProfileRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tutor application not found"));
+    }
+
+    @Transactional
+    public TutorProfile updateCredentials(UUID id, UpdateTutorCredentialsRequest request) {
+        TutorProfile app = get(id);
+        app.setHighestEducation(request.highestEducation());
+        app.setCertifications(request.certifications());
+        app.setLinkedinProfile(request.linkedinProfile());
+        app.setGeneralAvailability(request.generalAvailability());
+        app.setCvFileUrl(request.cvFileUrl());
+        if (request.termsAccepted() != null) {
+            app.setTermsAccepted(request.termsAccepted());
+        }
+        return tutorProfileRepository.save(app);
+    }
+
+    @Transactional
+    public TutorProfile submit(UUID id) {
+        TutorProfile app = get(id);
+        if (Boolean.TRUE.equals(app.getTermsAccepted())) {
+            app.setStatus(EnumApplicationStatus.SUBMITTED);
+        } else {
+            throw new IllegalStateException("Terms must be accepted before submission");
+        }
+        return tutorProfileRepository.save(app);
     }
 }

@@ -82,6 +82,7 @@ public class CourseService implements MasterService<CourseDto, UUID> {
             Long totalLessons = courseLessonRepository.countByCourseId(course.getId());
             courseDto = CourseDto.from(course);
             courseDto.setTutorName(course.getTutorProfile().getUser().getDisplayName());
+            courseDto.setTutorImgUrl(course.getTutorProfile().getUser().getPhotoUrl());
             courseDto.setLessons(totalLessons);
             courseDto.setDuration(totalDuration);
             if(userId != null && enrolls.contains(course.getId())) {
@@ -115,6 +116,7 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         CourseInfoResponse.TutorProfile tutorProfile = new CourseInfoResponse.TutorProfile();
         tutorProfile.setName(course.getTutorProfile().getUser().getDisplayName());
         tutorProfile.setTitle(course.getTutorProfile().getBio());
+        tutorProfile.setPhotoUrl(course.getTutorProfile().getUser().getPhotoUrl());
         detailDto.setTutorProfile(tutorProfile);
 
         return detailDto;
