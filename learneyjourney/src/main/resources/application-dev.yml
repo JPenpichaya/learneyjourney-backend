@@ -40,7 +40,8 @@ stripe:
   cancel-url: "https://learneyjourney.com/payment/cancel"
   webhook-secret: ${STRIPE_WEBHOOK_SECRET}
   apiBase: "https://api.stripe.com"
-  return-url: http://localhost:5173/tutor/verification-return
+  identity:
+    return-url: http://localhost:5173/tutor/verification-return
   connect:
     refresh-url: http://localhost:5173/tutor/connect/refresh
     return-url: http://localhost:5173/tutor/connect/return
