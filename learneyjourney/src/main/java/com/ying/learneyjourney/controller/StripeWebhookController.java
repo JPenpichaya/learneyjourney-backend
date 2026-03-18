@@ -262,7 +262,9 @@ public class StripeWebhookController {
         );
     }
 
-    @PostMapping
+
+
+    @PostMapping("/webhook/connect")
     public ResponseEntity<String> handle(@RequestBody String payload,
                                          @RequestHeader("Stripe-Signature") String sigHeader) throws Exception {
         final Event event;
@@ -294,6 +296,50 @@ public class StripeWebhookController {
             stripeConnectService.refreshAccountState(account.getId());
         }
 
-        return ResponseEntity.ok("received");
+        if ("checkout.session.completed".equals(event.getType())) {
+
+            Optional<StripeObject> objectOpt =
+                    event.getDataObjectDeserializer().getObject();
+
+            if (objectOpt.isPresent()) {
+                // ✅ Normal path (older API versions)
+                Session session = (Session) objectOpt.get();
+                handleSession(session, event.getId());
+
+            } else {
+                // ⚠️ Fallback path (new API versions)
+                log.warn("⚠️ Stripe SDK could not deserialize event object. Using fallback. eventId={}", event.getId());
+
+                JsonNode root = objectMapper.readTree(payload);
+                JsonNode sessionNode = root.path("data").path("object");
+                String orderId = sessionNode.path("metadata").path("orderId").asText(null);
+
+                handleSessionFallback(sessionNode, event.getId());
+
+                List<Purchase> purchaseList = purchaseRepository.findby_orderId(orderId);
+
+                if (purchaseList.isEmpty()) {
+                    throw new BusinessException("No purchases found for order " + orderId, "PURCHASES_NOT_FOUND");
+                }
+
+                for (Purchase p : purchaseList) {
+                    // Optional: add your own idempotency key per transfer if you store purchase IDs
+                    com.ying.learneyjourney.entity.TutorProfile tutorProfile = tutorProfileRepository.findTutorProfileByPurchaseId(p.getId()).orElseThrow(() -> new BusinessException("Tutor Stripe account not found for purchase " + p.getId(), "TUTOR_STRIPE_ACCOUNT_NOT_FOUND"));
+
+                    Transfer t = Transfer.create(
+                            TransferCreateParams.builder()
+                                    .setAmount(p.getAmount())
+                                    .setCurrency("usd")
+                                    .setDestination(tutorProfile.getStripConnect())
+                                    .setTransferGroup(orderId)
+                                    .build()
+                    );
+                    // You may want to store t.getId() per purchase in DB
+                    stripeTransferService.update(p, t, "COMPLETED");
+                }
+
+            }
+        }
+        return ResponseEntity.ok("ok");
     }
 }

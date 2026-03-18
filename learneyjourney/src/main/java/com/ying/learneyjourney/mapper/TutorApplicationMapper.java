@@ -2,6 +2,7 @@ package com.ying.learneyjourney.mapper;
 
 import com.ying.learneyjourney.dto.response.TutorApplicationResponse;
 import com.ying.learneyjourney.entity.TutorProfile;
+import com.ying.learneyjourney.dto.SelectedSlot;
 
 public class TutorApplicationMapper {
     public static TutorApplicationResponse toResponse(TutorProfile a) {
@@ -17,7 +18,7 @@ public class TutorApplicationMapper {
                 a.getHighestEducation(),
                 a.getCertifications(),
                 a.getLinkedinProfile(),
-                a.getGeneralAvailability(),
+                a.getGeneralAvailability() == null ? java.util.Collections.emptyList() : a.getGeneralAvailability().stream().map(s -> new SelectedSlot(s.day(), s.time())).toList(),
                 a.getCvFileUrl(),
                 a.getTermsAccepted(),
                 a.getStatus(),

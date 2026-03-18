@@ -3,7 +3,9 @@ package com.ying.learneyjourney.dto.response;
 import com.ying.learneyjourney.constaint.EnumApplicationStatus;
 import com.ying.learneyjourney.constaint.EnumIdentityStatus;
 import com.ying.learneyjourney.constaint.EnumSubjectType;
+import com.ying.learneyjourney.dto.SelectedSlot;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,7 +21,7 @@ public record TutorApplicationResponse(
         String highestEducation,
         String certifications,
         String linkedinProfile,
-        String generalAvailability,
+        List<SelectedSlot> generalAvailability,
         String cvFileUrl,
         Boolean termsAccepted,
         EnumApplicationStatus status,

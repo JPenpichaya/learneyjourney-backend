@@ -1,0 +1,42 @@
+package com.ying.learneyjourney.converter;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ying.learneyjourney.entity.SelectedSlot;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+@Converter
+public class SelectedSlotListConverter implements AttributeConverter<List<SelectedSlot>, String> {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public String convertToDatabaseColumn(List<SelectedSlot> attribute) {
+        if (attribute == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(attribute);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error converting list of slots to JSON", e);
+        }
+    }
+
+    @Override
+    public List<SelectedSlot> convertToEntityAttribute(String dbData) {
+        if (dbData == null || dbData.isEmpty()) {
+            return Collections.emptyList();
+        }
+        try {
+            return objectMapper.readValue(dbData, new TypeReference<List<SelectedSlot>>() {});
+        } catch (IOException e) {
+            throw new RuntimeException("Error converting JSON to list of slots", e);
+        }
+    }
+}

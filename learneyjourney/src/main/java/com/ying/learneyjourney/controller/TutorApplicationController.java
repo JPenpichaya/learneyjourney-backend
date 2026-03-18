@@ -15,8 +15,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -62,5 +64,20 @@ public class TutorApplicationController {
     @PostMapping("/{id}/stripe/connect/onboarding-link")
     public StripeConnectOnboardingResponse createConnectOnboardingLink(@PathVariable UUID id) throws StripeException {
         return stripeConnectService.createOrResumeOnboarding(id);
+    }
+
+    @GetMapping("/{applicationId}/stripe/connect/return")
+    public ResponseEntity<?> handleReturn(@PathVariable UUID applicationId) throws StripeException {
+        stripeConnectService.syncAccountState(applicationId);
+
+        var app = tutorApplicationService.get(applicationId);
+
+        return ResponseEntity.ok(Map.of(
+                "applicationId", app.getId(),
+                "connectOnboardingComplete", app.getConnectOnboardingComplete(),
+                "chargesEnabled", app.getChargesEnabled(),
+                "payoutsEnabled", app.getPayoutsEnabled(),
+                "status", app.getStatus().name()
+        ));
     }
 }

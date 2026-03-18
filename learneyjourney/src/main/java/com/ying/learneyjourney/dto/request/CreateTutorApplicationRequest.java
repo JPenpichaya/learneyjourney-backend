@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
+import java.util.List;
 import java.util.Set;
 
 public record CreateTutorApplicationRequest(
@@ -14,5 +15,6 @@ public record CreateTutorApplicationRequest(
         String country,
         @NotEmpty Set<EnumSubjectType> subjects,
         Integer yearsExperience,
-        String teachingBio
+        String teachingBio,
+        List<String> teachingStyles
 ) {}

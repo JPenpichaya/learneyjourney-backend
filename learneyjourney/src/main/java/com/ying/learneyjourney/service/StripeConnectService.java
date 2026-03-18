@@ -65,4 +65,22 @@ public class StripeConnectService {
         app.setConnectOnboardingComplete(Boolean.TRUE.equals(account.getDetailsSubmitted()));
         repository.save(app);
     }
+
+
+    @Transactional
+    public void syncAccountState(UUID applicationId) throws StripeException {
+        TutorProfile app = repository.findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("Tutor application not found"));
+
+        if (app.getStripeConnectAccountId() == null || app.getStripeConnectAccountId().isBlank()) {
+            throw new IllegalStateException("Stripe connected account has not been created yet");
+        }
+
+        Account account = Account.retrieve(app.getStripeConnectAccountId());
+        app.setConnectOnboardingComplete(Boolean.TRUE.equals(account.getDetailsSubmitted()));
+        app.setChargesEnabled(Boolean.TRUE.equals(account.getChargesEnabled()));
+        app.setPayoutsEnabled(Boolean.TRUE.equals(account.getPayoutsEnabled()));
+        repository.save(app);
+    }
+
 }

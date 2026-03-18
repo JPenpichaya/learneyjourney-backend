@@ -38,7 +38,7 @@ stripe:
   publish-key: ${STRIPE_PUBLISHABLE_KEY}
   success-url: "https://learneyjourney.com/payment/success"
   cancel-url: "https://learneyjourney.com/payment/cancel"
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET_DEV}
   apiBase: "https://api.stripe.com"
   identity:
     return-url: http://localhost:5173/tutor/verification-return

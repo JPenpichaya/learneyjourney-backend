@@ -9,7 +9,6 @@ import com.ying.learneyjourney.dto.request.UpdateTutorCredentialsRequest;
 import com.ying.learneyjourney.entity.TutorProfile;
 import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.master.MasterService;
-import com.ying.learneyjourney.master.SearchCriteria;
 
 import com.ying.learneyjourney.repository.TutorProfileRepository;
 import com.ying.learneyjourney.repository.UserRepository;
@@ -90,6 +89,7 @@ public class TutorProfileService implements MasterService<TutorProfilesDto, UUID
                 app.setYearsExperience(request.yearsExperience());
                 app.setTeachingBio(request.teachingBio());
                 app.setStatus(EnumApplicationStatus.DRAFT);
+                app.setTeachingStyles(request.teachingStyles());
         return tutorProfileRepository.save(app);
     }
 
@@ -105,7 +105,14 @@ public class TutorProfileService implements MasterService<TutorProfilesDto, UUID
         app.setHighestEducation(request.highestEducation());
         app.setCertifications(request.certifications());
         app.setLinkedinProfile(request.linkedinProfile());
-        app.setGeneralAvailability(request.generalAvailability());
+        
+        if (request.generalAvailability() != null) {
+            List<com.ying.learneyjourney.entity.SelectedSlot> slots = request.generalAvailability().stream()
+                .map(s -> new com.ying.learneyjourney.entity.SelectedSlot(s.day(), s.time()))
+                .toList();
+            app.setGeneralAvailability(slots);
+        }
+
         app.setCvFileUrl(request.cvFileUrl());
         if (request.termsAccepted() != null) {
             app.setTermsAccepted(request.termsAccepted());

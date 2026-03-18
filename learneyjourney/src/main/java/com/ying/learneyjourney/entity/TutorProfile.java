@@ -3,14 +3,15 @@ package com.ying.learneyjourney.entity;
 import com.ying.learneyjourney.constaint.EnumApplicationStatus;
 import com.ying.learneyjourney.constaint.EnumIdentityStatus;
 import com.ying.learneyjourney.constaint.EnumSubjectType;
+import com.ying.learneyjourney.converter.SelectedSlotListConverter;
+import com.ying.learneyjourney.converter.StringListConverter;
 import com.ying.learneyjourney.untils.Auditable;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -55,7 +56,14 @@ public class TutorProfile extends Auditable {
     @Column(columnDefinition = "TEXT")
     private String teachingBio;
 
-    private String generalAvailability;
+    @Convert(converter = StringListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<String> teachingStyles;
+
+    @Convert(converter = SelectedSlotListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<SelectedSlot> generalAvailability;
+    
     private Integer yearsExperience;
     private String cvFileUrl;
     private Boolean termsAccepted = false;
@@ -66,7 +74,7 @@ public class TutorProfile extends Auditable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "identity_status")
-    private EnumIdentityStatus identityStatus = EnumIdentityStatus.NOT_STARTED;;
+    private EnumIdentityStatus identityStatus = EnumIdentityStatus.NOT_STARTED;
 
     private String stripeIdentitySessionId;
     private String stripeIdentityVerificationReportId;
