@@ -203,4 +203,8 @@ public class CourseService implements MasterService<CourseDto, UUID> {
         course.setOutcomes(request.getCourseInfo().getOutcomes());
         return course;
     }
+
+    public long getCourseActiveByTutor(UUID tutorId){
+        return courseRepository.countByTutorProfileId(tutorId);
+    }
 }

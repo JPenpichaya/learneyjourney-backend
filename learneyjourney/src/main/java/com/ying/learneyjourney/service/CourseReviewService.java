@@ -52,4 +52,13 @@ public class CourseReviewService implements MasterService<CourseReviewDto, UUID>
     @Override
     public void deleteById(UUID uuid) {
     }
+
+    public List<CourseReviewDto> getReviewsByCourseId(UUID courseId) {
+        return courseReviewRepository.findAllByCourseId(courseId).stream()
+                .map(CourseReviewDto::fromEntity).toList();
+    }
+
+    public Double getAverageRatingByCourseId(UUID courseId) {
+        return courseReviewRepository.getAverageRatingByCourseId(courseId);
+    }
 }

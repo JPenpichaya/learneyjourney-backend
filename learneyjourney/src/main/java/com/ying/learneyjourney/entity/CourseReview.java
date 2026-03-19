@@ -31,4 +31,7 @@ public class CourseReview extends Auditable {
     @Column(name = "review", length = 2000)
     private String review;
 
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible = true;
+
 }

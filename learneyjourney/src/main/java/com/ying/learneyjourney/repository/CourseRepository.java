@@ -14,4 +14,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID>, JpaSpecif
 
     @Query("select c from Course c where c.isShowOnProfile = true and c.tutorProfile.id = ?1 order by c.createdAt desc")
     List<Course> findBy_IsShowCourseOnProfile_True(UUID tutorProfileId);
+
+    long countByTutorProfileId(UUID tutorProfileId);
 }

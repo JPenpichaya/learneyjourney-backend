@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface CourseReviewRepository extends JpaRepository<CourseReview, UUID>, JpaSpecificationExecutor<CourseReview> {
@@ -17,4 +18,7 @@ public interface CourseReviewRepository extends JpaRepository<CourseReview, UUID
           AND cr.rating IS NOT NULL
         """, nativeQuery = true)
     Double getAverageRatingByCourseId(@Param("courseId") UUID courseId);
+
+    @Query("select c from CourseReview c where c.course.id = ?1")
+    List<CourseReview> findAllByCourseId(UUID id);
 }
