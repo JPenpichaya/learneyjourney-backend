@@ -1,6 +1,7 @@
 package com.ying.learneyjourney.entity;
 
 import com.ying.learneyjourney.constaint.EnumUserRoles;
+import com.ying.learneyjourney.constaint.PlanType;
 import com.ying.learneyjourney.untils.Auditable;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -33,5 +34,7 @@ public class User extends Auditable {
     private EnumUserRoles role;
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "plan_type", nullable = false, length = 20)
+    private PlanType planType = PlanType.FREE;
 }

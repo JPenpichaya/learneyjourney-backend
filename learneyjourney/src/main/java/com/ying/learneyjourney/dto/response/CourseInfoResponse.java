@@ -2,6 +2,7 @@ package com.ying.learneyjourney.dto.response;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -26,5 +27,17 @@ public class CourseInfoResponse {
         private String name;
         private String title;
         private String photoUrl;
+    }
+    public record WorksheetSummaryResponse(
+            UUID id,
+            String title,
+            String subject,
+            String language,
+            String activeVersionLabel,
+            int versionCount,
+            int exportCount,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
     }
 }

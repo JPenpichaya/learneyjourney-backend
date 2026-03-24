@@ -23,6 +23,7 @@ import com.ying.learneyjourney.repository.OrdersRepository;
 import com.ying.learneyjourney.repository.PurchaseRepository;
 import com.ying.learneyjourney.repository.StripeTransferRepository;
 import com.ying.learneyjourney.repository.TutorProfileRepository;
+import com.ying.learneyjourney.service.BillingService;
 import com.ying.learneyjourney.service.PaymentService;
 import com.ying.learneyjourney.service.StripeConnectService;
 import com.ying.learneyjourney.service.StripeTransferService;
@@ -58,6 +59,7 @@ public class StripeWebhookController {
     private final StripeConfig stripeProperties;
     private final TutorProfileRepository repository;
     private final StripeConnectService stripeConnectService;
+    private final BillingService billingService;
 
     @PostMapping("/webhook")
     public ResponseEntity<String> webhook(HttpServletRequest request) {
@@ -304,7 +306,12 @@ public class StripeWebhookController {
             if (objectOpt.isPresent()) {
                 // ✅ Normal path (older API versions)
                 Session session = (Session) objectOpt.get();
-                handleSession(session, event.getId());
+                Purchase purchase = purchaseRepository.findByStripeSessionId(session.getId()).orElse(null);
+                if (purchase != null) {
+                    handleSession(session, event.getId());
+                }else{
+                    billingService.handleCheckoutCompleted(session.getId());
+                }
 
             } else {
                 // ⚠️ Fallback path (new API versions)

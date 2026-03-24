@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Profile;
 public class StripeConfig {
     private String secretKey;
     private String webhookSecret;
+    private String successUrl;
+    private String cancelUrl;
+
     private Identity identity = new Identity();
     private Connect connect = new Connect();
 
