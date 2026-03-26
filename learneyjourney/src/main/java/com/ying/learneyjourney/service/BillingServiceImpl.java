@@ -27,6 +27,8 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
+import static com.ying.learneyjourney.service.WorksheetGenerationServiceImpl.FREE_DAILY_GENERATION_LIMIT;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -55,23 +57,27 @@ public class BillingServiceImpl implements BillingService {
     private final StripeConfig stripeApiProperties;
 
     @Override
-    public WalletResponse getWallet(String userEmail) {
-        User user = getUserByEmail(userEmail);
+    public WalletResponse getWallet(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         CreditWallet wallet = getOrCreateWallet(user);
-        boolean hasActiveSubscription = hasActiveSubscription(userEmail);
+        boolean hasActiveSubscription = hasActiveSubscription(user.getEmail());
 
         return new WalletResponse(
                 user.getPlanType().name(),
                 hasActiveSubscription,
-                wallet.getCredits()
+                wallet.getCredits(),
+                user.getFreeExportsUsed() == null ? 0 : user.getFreeExportsUsed(),
+                user.getFreeExportsLimit() == null ? 2 : user.getFreeExportsLimit(),
+                user.getDailyGenerationsUsed() == null ? 0 : user.getDailyGenerationsUsed(),
+                FREE_DAILY_GENERATION_LIMIT
         );
     }
 
     @Override
-    public CheckoutSessionResponse createCheckoutSession(CreateCheckoutSessionRequest request) {
+    public CheckoutSessionResponse createCheckoutSession(CreateCheckoutSessionRequest request, String userId) {
         validateStripeConfig();
 
-        User user = getUserByEmail(request.userEmail());
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         getOrCreateWallet(user);
 
         try {
@@ -137,14 +143,26 @@ public class BillingServiceImpl implements BillingService {
             return;
         }
 
+        if (canUseFreeExport(user)) {
+            user.setFreeExportsUsed(user.getFreeExportsUsed() + 1);
+            userRepository.save(user);
+            return;
+        }
+
         CreditWallet wallet = getOrCreateWallet(user);
 
         if (wallet.getCredits() == null || wallet.getCredits() <= 0) {
-            throw new BadRequestException("No export credits available. Buy a package or subscribe.");
+            throw new BadRequestException("No export credits available. You have used all free exports. Buy a package or subscribe.");
         }
 
         wallet.setCredits(wallet.getCredits() - 1);
         walletRepository.save(wallet);
+    }
+
+    private boolean canUseFreeExport(User user) {
+        Integer used = user.getFreeExportsUsed() == null ? 0 : user.getFreeExportsUsed();
+        Integer limit = user.getFreeExportsLimit() == null ? 0 : user.getFreeExportsLimit();
+        return used < limit;
     }
 
     private CheckoutSessionResponse createCreditCheckoutSession(User user, String packageCode) throws StripeException {

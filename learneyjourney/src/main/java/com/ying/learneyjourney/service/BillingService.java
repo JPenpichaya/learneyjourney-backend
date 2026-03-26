@@ -6,7 +6,7 @@ import com.ying.learneyjourney.dto.response.WalletResponse;
 
 public interface BillingService {
     WalletResponse getWallet(String userEmail);
-    CheckoutSessionResponse createCheckoutSession(CreateCheckoutSessionRequest request);
+    CheckoutSessionResponse createCheckoutSession(CreateCheckoutSessionRequest request, String userId);
     void handleCheckoutCompleted(String sessionId);
     boolean hasActiveSubscription(String userEmail);
     void consumeExport(String userEmail);

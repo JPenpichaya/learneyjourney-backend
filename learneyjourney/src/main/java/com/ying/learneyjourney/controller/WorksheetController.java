@@ -1,5 +1,6 @@
 package com.ying.learneyjourney.controller;
 
+import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.dto.request.CreateWorksheetRequest;
 import com.ying.learneyjourney.dto.request.ExportWorksheetRequest;
 import com.ying.learneyjourney.dto.request.SaveWorksheetRequest;
@@ -10,6 +11,7 @@ import com.ying.learneyjourney.dto.response.WorksheetDetailResponse;
 import com.ying.learneyjourney.service.WorksheetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,68 +25,80 @@ import java.util.UUID;
 public class WorksheetController {
 
     private final WorksheetService worksheetService;
+    private final FirebaseAuthUtil firebaseAuthUtil;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public WorksheetDetailResponse create(@Valid @RequestBody CreateWorksheetRequest request) {
-        return worksheetService.create(request);
+    public WorksheetDetailResponse create(@Valid @RequestBody CreateWorksheetRequest request,
+                                          @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return worksheetService.create(request, userId);
     }
 
     @GetMapping
     public PagedResponse<CourseInfoResponse.WorksheetSummaryResponse> list(
-            @RequestParam String userEmail,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
-    ) {
-        return worksheetService.list(userEmail, keyword, page, size);
+    ) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return worksheetService.list(userId, keyword, page, size);
     }
 
     @GetMapping("/{id}")
     public WorksheetDetailResponse getById(
             @PathVariable UUID id,
-            @RequestParam String userEmail
-    ) {
-        return worksheetService.getById(userEmail, id);
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader
+    ) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return worksheetService.getById(userId, id);
     }
 
     @PatchMapping("/{id}")
     public WorksheetDetailResponse updateMeta(
             @PathVariable UUID id,
-            @RequestParam String userEmail,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader,
             @Valid @RequestBody UpdateWorksheetRequest request
-    ) {
-        return worksheetService.updateMeta(userEmail, id, request);
+    ) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return worksheetService.updateMeta(userId, id, request);
     }
 
     @PutMapping("/{id}/save")
     public WorksheetDetailResponse saveVersion(
             @PathVariable UUID id,
-            @Valid @RequestBody SaveWorksheetRequest request
-    ) {
-        return worksheetService.saveVersion(id, request);
+            @Valid @RequestBody SaveWorksheetRequest request,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader
+    ) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return worksheetService.saveVersion(id, request, userId);
     }
 
     @PostMapping("/{id}/duplicate")
     public WorksheetDetailResponse duplicate(
             @PathVariable UUID id,
-            @RequestParam String userEmail
-    ) {
-        return worksheetService.duplicate(userEmail, id);
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader
+    ) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        return worksheetService.duplicate(userId, id);
     }
 
     @PostMapping("/export")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void export(@Valid @RequestBody ExportWorksheetRequest request) {
-        worksheetService.export(request);
+    public void export(@Valid @RequestBody ExportWorksheetRequest request,
+                       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        worksheetService.export(request, userId);
     }
 
     @DeleteMapping("/{id}")
     public Map<String, String> delete(
             @PathVariable UUID id,
-            @RequestParam String userEmail
-    ) {
-        worksheetService.delete(userEmail, id);
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader
+    ) throws Exception {
+        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+        worksheetService.delete(userId, id);
         return Map.of("message", "Worksheet deleted successfully");
     }
 }

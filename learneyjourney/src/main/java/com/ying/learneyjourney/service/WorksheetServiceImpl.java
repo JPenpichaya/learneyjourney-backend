@@ -38,8 +38,8 @@ public class WorksheetServiceImpl implements WorksheetService {
     private final BillingService billingService;
 
     @Override
-    public WorksheetDetailResponse create(CreateWorksheetRequest request) {
-        User user = getUserByEmail(request.userEmail());
+    public WorksheetDetailResponse create(CreateWorksheetRequest request, String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
         Worksheet worksheet = Worksheet.builder()
                 .user(user)
@@ -68,8 +68,8 @@ public class WorksheetServiceImpl implements WorksheetService {
     }
 
     @Override
-    public WorksheetDetailResponse getById(String userEmail, UUID id) {
-        User user = getUserByEmail(userEmail);
+    public WorksheetDetailResponse getById(String userId, UUID id) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Worksheet worksheet = worksheetRepository.findByIdAndUserIdAndDeletedFalse(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Worksheet not found"));
         worksheet.getVersions().sort(Comparator.comparing(WorksheetVersion::getSortOrder));
@@ -77,8 +77,8 @@ public class WorksheetServiceImpl implements WorksheetService {
     }
 
     @Override
-    public WorksheetDetailResponse updateMeta(String userEmail, UUID id, UpdateWorksheetRequest request) {
-        User user = getUserByEmail(userEmail);
+    public WorksheetDetailResponse updateMeta(String userId, UUID id, UpdateWorksheetRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Worksheet worksheet = worksheetRepository.findByIdAndUserIdAndDeletedFalse(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Worksheet not found"));
         if (request.title() != null) worksheet.setTitle(request.title());
@@ -88,8 +88,8 @@ public class WorksheetServiceImpl implements WorksheetService {
         return worksheetMapper.toDetail(worksheet);
     }
     @Override
-    public WorksheetDetailResponse saveVersion(UUID worksheetId, SaveWorksheetRequest request) {
-        User user = getUserByEmail(request.userEmail());
+    public WorksheetDetailResponse saveVersion(UUID worksheetId, SaveWorksheetRequest request, String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Worksheet worksheet = worksheetRepository.findByIdAndUserIdAndDeletedFalse(worksheetId, user.getId())
                 .orElseThrow(() -> new NotFoundException("Worksheet not found"));
 
@@ -108,8 +108,8 @@ public class WorksheetServiceImpl implements WorksheetService {
     }
 
     @Override
-    public WorksheetDetailResponse duplicate(String userEmail, UUID id) {
-        User user = getUserByEmail(userEmail);
+    public WorksheetDetailResponse duplicate(String userId, UUID id) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Worksheet source = worksheetRepository.findByIdAndUserIdAndDeletedFalse(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Worksheet not found"));
 
@@ -133,15 +133,15 @@ public class WorksheetServiceImpl implements WorksheetService {
         return worksheetMapper.toDetail(worksheetRepository.save(duplicate));
     }
     @Override
-    public void delete(String userEmail, UUID id) {
-        User user = getUserByEmail(userEmail);
+    public void delete(String userId, UUID id) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Worksheet worksheet = worksheetRepository.findByIdAndUserIdAndDeletedFalse(id, user.getId())
                 .orElseThrow(() -> new NotFoundException("Worksheet not found"));
         worksheet.setDeleted(true);
     }
     @Override
-    public void export(ExportWorksheetRequest request) {
-        User user = getUserByEmail(request.userEmail());
+    public void export(ExportWorksheetRequest request, String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Worksheet worksheet = worksheetRepository.findByIdAndUserIdAndDeletedFalse(request.worksheetId(), user.getId())
                 .orElseThrow(() -> new NotFoundException("Worksheet not found"));
 

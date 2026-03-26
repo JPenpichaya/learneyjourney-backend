@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.servlet.tags.form.TextareaTag;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -37,4 +38,16 @@ public class User extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "plan_type", nullable = false, length = 20)
     private PlanType planType = PlanType.FREE;
+
+    @Column(name = "free_exports_used", nullable = false)
+    private Integer freeExportsUsed = 0;
+
+    @Column(name = "free_exports_limit", nullable = false)
+    private Integer freeExportsLimit = 2;
+
+    @Column(name = "daily_generations_used", nullable = false)
+    private Integer dailyGenerationsUsed = 0;
+
+    @Column(name = "daily_generation_reset_date")
+    private LocalDate dailyGenerationResetDate;
 }

@@ -1,13 +1,17 @@
 package com.ying.learneyjourney.service;
 
 import com.ying.learneyjourney.config.OpenAiApiProperties;
+import com.ying.learneyjourney.constaint.PlanType;
 import com.ying.learneyjourney.dto.request.CreateWorksheetRequest;
 import com.ying.learneyjourney.dto.request.GenerateWorksheetRequest;
 import com.ying.learneyjourney.dto.request.OpenAiChatRequest;
 import com.ying.learneyjourney.dto.request.OpenAiChatResponse;
 import com.ying.learneyjourney.dto.response.GenerateWorksheetResponse;
 import com.ying.learneyjourney.dto.response.WorksheetDetailResponse;
+import com.ying.learneyjourney.entity.User;
 import com.ying.learneyjourney.exception.AiGatewayException;
+import com.ying.learneyjourney.exception.NotFoundException;
+import com.ying.learneyjourney.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,33 +19,42 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
 @Service
 public class WorksheetGenerationServiceImpl implements WorksheetGenerationService {
+    private final UserRepository userRepository;
 
     private final RestClient restClient;
     private final OpenAiApiProperties openAiApiProperties;
     private final WorksheetService worksheetService;
 
     public WorksheetGenerationServiceImpl(RestClient.Builder restClientBuilder,
-                                          OpenAiApiProperties openAiApiProperties, WorksheetService worksheetService) {
+                                          OpenAiApiProperties openAiApiProperties, WorksheetService worksheetService,
+                                          UserRepository userRepository) {
         this.openAiApiProperties = openAiApiProperties;
         this.worksheetService = worksheetService;
         this.restClient = restClientBuilder
                 .baseUrl(openAiApiProperties.getBaseUrl())
                 .defaultHeader("Authorization", "Bearer " + openAiApiProperties.getApiKey())
                 .build();
+        this.userRepository = userRepository;
     }
 
+    public static final int FREE_DAILY_GENERATION_LIMIT = 5;
+
     @Override
-    public GenerateWorksheetResponse generateWorksheet(GenerateWorksheetRequest request) {
+    public GenerateWorksheetResponse generateWorksheet(GenerateWorksheetRequest request, String userId) {
         validateRequest(request);
         validateApiKey();
 
         String language = normalizeLanguage(request.outputLanguage());
         String systemPrompt = buildSystemPrompt(language);
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        enforceGenerationLimit(user);
 
         OpenAiChatRequest openAiRequest = new OpenAiChatRequest(
                 "gpt-4.1-mini",
@@ -78,7 +91,7 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                                     )
                             ),
                             "A"
-                    )
+                    ), userId
             );
 
             return new GenerateWorksheetResponse(savedWorksheet.id(), html);
@@ -207,6 +220,35 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
         }
 
         return html.trim();
+    }
+
+    private void enforceGenerationLimit(User user) {
+        resetDailyGenerationIfNeeded(user);
+
+        if (user.getPlanType() == PlanType.PRO) {
+            return;
+        }
+
+        int used = user.getDailyGenerationsUsed() == null ? 0 : user.getDailyGenerationsUsed();
+
+        if (used >= FREE_DAILY_GENERATION_LIMIT) {
+            throw new AiGatewayException(
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    "Daily free generation limit reached. Please come back tomorrow or upgrade."
+            );
+        }
+
+        user.setDailyGenerationsUsed(used + 1);
+        userRepository.save(user);
+    }
+
+    private void resetDailyGenerationIfNeeded(User user) {
+        LocalDate today = LocalDate.now();
+
+        if (user.getDailyGenerationResetDate() == null || !today.equals(user.getDailyGenerationResetDate())) {
+            user.setDailyGenerationsUsed(0);
+            user.setDailyGenerationResetDate(today);
+        }
     }
 
     private boolean isBlank(String value) {
