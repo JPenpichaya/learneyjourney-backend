@@ -11,16 +11,12 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "worksheets")
 public class Worksheet extends Auditable {
 
     @Id
-    @GeneratedValue
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -43,19 +39,13 @@ public class Worksheet extends Auditable {
     private String activeVersionLabel;
 
     @Column(name = "export_count", nullable = false)
-    @Builder.Default
     private Integer exportCount = 0;
 
     @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
     private Boolean deleted = false;
 
     @OneToMany(mappedBy = "worksheet", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     private List<WorksheetVersion> versions = new ArrayList<>();
 
-    public void addVersion(WorksheetVersion version) {
-        version.setWorksheet(this);
-        this.versions.add(version);
-    }
 }

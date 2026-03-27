@@ -21,14 +21,10 @@ import java.util.UUID;
 )
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Booking {
 
     @Id
-    @GeneratedValue
-    @UuidGenerator
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     // 👤 Student who booked

@@ -7,6 +7,6 @@ public record GenerateWorksheetRequest(
         String outputLanguage,
         @NotBlank String title,
         @NotBlank String subject,
-        @NotBlank String userEmail
+        String userEmail
 ) {
 }

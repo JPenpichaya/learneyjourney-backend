@@ -1,10 +1,10 @@
 package com.ying.learneyjourney.dto.response;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 @Data
 public class CourseInfoResponse {
     private UUID id;

@@ -135,10 +135,6 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
         if (isBlank(request.subject())) {
             throw new AiGatewayException(HttpStatus.BAD_REQUEST, "Subject is required.");
         }
-
-        if (isBlank(request.userEmail())) {
-            throw new AiGatewayException(HttpStatus.BAD_REQUEST, "User email is required.");
-        }
     }
 
     private void validateApiKey() {
