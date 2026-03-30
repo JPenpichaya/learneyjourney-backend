@@ -57,8 +57,7 @@ public class SecurityConfig {
                                 "/api/checkout/create-session",
                                 "/token",
                                 "/api/course/all/**",
-                                "/api/auth/login",
-                                "/api/v1/billing/create-session"
+                                "/api/auth/login"
                         ).permitAll()
 
                         .requestMatchers("/api/auth/**").permitAll()
@@ -69,9 +68,9 @@ public class SecurityConfig {
                                 "/api/course/student/**", "/api/video-progress/**",
                                 "/api/tutor-applications/**",
                                 "/api/student-notes/**",
-                                "/api/v1/billing/wallet",
                                 "/api/v1/worksheets/**",
-                                "/api/v1/ai/worksheets/**")
+                                "/api/v1/ai/worksheets/**",
+                                "/api/v1/billing/**")
                         .hasAnyRole("USER", "TEACHER", "ADMIN")
 
                         // ✅ TEACHER APIs (TEACHER/ADMIN can call)

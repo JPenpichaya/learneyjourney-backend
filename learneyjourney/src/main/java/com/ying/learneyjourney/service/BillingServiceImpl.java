@@ -47,6 +47,9 @@ public class BillingServiceImpl implements BillingService {
             "PACK_25", 19900
     );
 
+    private static final int FREE_DAILY_GENERATION_LIMIT = 5;
+    private static final int FREE_EXPORT_LIMIT = 2;
+
     private static final String SUBSCRIPTION_CODE = "PRO_MONTHLY";
     private static final int PRO_MONTHLY_PRICE = 19900; // 199 THB
 
@@ -60,7 +63,7 @@ public class BillingServiceImpl implements BillingService {
     public WalletResponse getWallet(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         CreditWallet wallet = getOrCreateWallet(user);
-        boolean hasActiveSubscription = hasActiveSubscription(user.getEmail());
+        boolean hasActiveSubscription = hasActiveSubscription(user);
 
         return new WalletResponse(
                 user.getPlanType().name(),
@@ -127,8 +130,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
-    public boolean hasActiveSubscription(String userEmail) {
-        User user = getUserByEmail(userEmail);
+    public boolean hasActiveSubscription(User user) {
         return subscriptionRepository.existsByUserIdAndActiveTrueAndEndDateAfter(
                 user.getId(),
                 OffsetDateTime.now()
@@ -136,15 +138,15 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
-    public void consumeExport(String userEmail) {
-        User user = getUserByEmail(userEmail);
+    public void consumeExport(User user) {
 
-        if (hasActiveSubscription(userEmail)) {
+        if (hasActiveSubscription(user)) {
             return;
         }
 
         if (canUseFreeExport(user)) {
-            user.setFreeExportsUsed(user.getFreeExportsUsed() + 1);
+            int used = user.getFreeExportsUsed() == null ? 0 : user.getFreeExportsUsed();
+            user.setFreeExportsUsed(used + 1);
             userRepository.save(user);
             return;
         }
@@ -161,7 +163,7 @@ public class BillingServiceImpl implements BillingService {
 
     private boolean canUseFreeExport(User user) {
         Integer used = user.getFreeExportsUsed() == null ? 0 : user.getFreeExportsUsed();
-        Integer limit = user.getFreeExportsLimit() == null ? 0 : user.getFreeExportsLimit();
+        Integer limit = user.getFreeExportsLimit() == null ? FREE_EXPORT_LIMIT : user.getFreeExportsLimit();
         return used < limit;
     }
 

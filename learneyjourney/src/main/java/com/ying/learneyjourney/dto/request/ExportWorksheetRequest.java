@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record ExportWorksheetRequest(
-        @NotBlank String userEmail,
+        String userEmail,
         @NotNull UUID worksheetId,
         @NotNull UUID versionId
 ) {

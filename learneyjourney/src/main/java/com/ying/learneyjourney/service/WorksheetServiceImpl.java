@@ -171,7 +171,7 @@ public class WorksheetServiceImpl implements WorksheetService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Version not found"));
 
-        billingService.consumeExport(user.getEmail());
+        billingService.consumeExport(user);
 
         worksheet.setExportCount(worksheet.getExportCount() + 1);
         version.setExportCount(version.getExportCount() + 1);
