@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 public record CreateCheckoutSessionRequest(
         String userEmail,
         @NotBlank String mode,
-        @NotBlank String itemCode
+        @NotBlank String itemCode,
+        String successUrl,
+        String cancelUrl
 ) {
 }

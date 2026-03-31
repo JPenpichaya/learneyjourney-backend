@@ -85,11 +85,11 @@ public class BillingServiceImpl implements BillingService {
 
         try {
             if ("credits".equalsIgnoreCase(request.mode())) {
-                return createCreditCheckoutSession(user, request.itemCode());
+                return createCreditCheckoutSession(user, request.itemCode(), request.successUrl(), request.cancelUrl());
             }
 
             if ("subscription".equalsIgnoreCase(request.mode())) {
-                return createSubscriptionCheckoutSession(user, request.itemCode());
+                return createSubscriptionCheckoutSession(user, request.itemCode(), request.successUrl(), request.cancelUrl());
             }
 
             throw new BadRequestException("Invalid checkout mode. Use 'credits' or 'subscription'.");
@@ -167,7 +167,7 @@ public class BillingServiceImpl implements BillingService {
         return used < limit;
     }
 
-    private CheckoutSessionResponse createCreditCheckoutSession(User user, String packageCode) throws StripeException {
+    private CheckoutSessionResponse createCreditCheckoutSession(User user, String packageCode, String successUrl, String cancelUrl) throws StripeException {
         Integer credits = CREDIT_PACKS.get(packageCode);
         Integer unitAmount = CREDIT_PRICES.get(packageCode);
 
@@ -177,8 +177,8 @@ public class BillingServiceImpl implements BillingService {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(stripeApiProperties.getSuccessUrl() + "?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(stripeApiProperties.getCancelUrl())
+                .setSuccessUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(cancelUrl)
                 .putMetadata("type", "credits")
                 .putMetadata("userEmail", user.getEmail())
                 .putMetadata("packageCode", packageCode)
@@ -215,15 +215,15 @@ public class BillingServiceImpl implements BillingService {
         return new CheckoutSessionResponse(session.getId(), session.getUrl());
     }
 
-    private CheckoutSessionResponse createSubscriptionCheckoutSession(User user, String itemCode) throws StripeException {
+    private CheckoutSessionResponse createSubscriptionCheckoutSession(User user, String itemCode, String successUrl, String cancelUrl) throws StripeException {
         if (!SUBSCRIPTION_CODE.equalsIgnoreCase(itemCode)) {
             throw new BadRequestException("Invalid subscription code.");
         }
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(stripeApiProperties.getSuccessUrl() + "?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(stripeApiProperties.getCancelUrl())
+                .setSuccessUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(cancelUrl)
                 .putMetadata("type", "subscription")
                 .putMetadata("userEmail", user.getEmail())
                 .putMetadata("planCode", itemCode)

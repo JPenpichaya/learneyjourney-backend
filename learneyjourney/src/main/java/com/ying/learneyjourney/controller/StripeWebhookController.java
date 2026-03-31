@@ -61,7 +61,7 @@ public class StripeWebhookController {
     private final StripeConnectService stripeConnectService;
     private final BillingService billingService;
 
-    @PostMapping("/webhook")
+    @PostMapping("/webhook/test")
     public ResponseEntity<String> webhook(HttpServletRequest request) {
         String payload;
         try {
@@ -266,12 +266,12 @@ public class StripeWebhookController {
 
 
 
-    @PostMapping("/webhook/connect")
+    @PostMapping("/webhook")
     public ResponseEntity<String> handle(@RequestBody String payload,
                                          @RequestHeader("Stripe-Signature") String sigHeader) throws Exception {
         final Event event;
         try {
-            event = Webhook.constructEvent(payload, sigHeader, stripeProperties.getWebhookSecret());
+            event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
         } catch (SignatureVerificationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
         }
@@ -323,26 +323,32 @@ public class StripeWebhookController {
 
                 handleSessionFallback(sessionNode, event.getId());
 
-                List<Purchase> purchaseList = purchaseRepository.findby_orderId(orderId);
+                String typeCheckout = sessionNode.path("metadata").path("type").asText(null);
 
-                if (purchaseList.isEmpty()) {
-                    throw new BusinessException("No purchases found for order " + orderId, "PURCHASES_NOT_FOUND");
-                }
+                if(typeCheckout != null){
+                    billingService.handleCheckoutCompleted(sessionNode.path("id").asText());
+                }else{
+                    List<Purchase> purchaseList = purchaseRepository.findby_orderId(orderId);
 
-                for (Purchase p : purchaseList) {
-                    // Optional: add your own idempotency key per transfer if you store purchase IDs
-                    com.ying.learneyjourney.entity.TutorProfile tutorProfile = tutorProfileRepository.findTutorProfileByPurchaseId(p.getId()).orElseThrow(() -> new BusinessException("Tutor Stripe account not found for purchase " + p.getId(), "TUTOR_STRIPE_ACCOUNT_NOT_FOUND"));
+                    if (purchaseList.isEmpty()) {
+                        throw new BusinessException("No purchases found for order " + orderId, "PURCHASES_NOT_FOUND");
+                    }
 
-                    Transfer t = Transfer.create(
-                            TransferCreateParams.builder()
-                                    .setAmount(p.getAmount())
-                                    .setCurrency("usd")
-                                    .setDestination(tutorProfile.getStripConnect())
-                                    .setTransferGroup(orderId)
-                                    .build()
-                    );
-                    // You may want to store t.getId() per purchase in DB
-                    stripeTransferService.update(p, t, "COMPLETED");
+                    for (Purchase p : purchaseList) {
+                        // Optional: add your own idempotency key per transfer if you store purchase IDs
+                        com.ying.learneyjourney.entity.TutorProfile tutorProfile = tutorProfileRepository.findTutorProfileByPurchaseId(p.getId()).orElseThrow(() -> new BusinessException("Tutor Stripe account not found for purchase " + p.getId(), "TUTOR_STRIPE_ACCOUNT_NOT_FOUND"));
+
+                        Transfer t = Transfer.create(
+                                TransferCreateParams.builder()
+                                        .setAmount(p.getAmount())
+                                        .setCurrency("usd")
+                                        .setDestination(tutorProfile.getStripConnect())
+                                        .setTransferGroup(orderId)
+                                        .build()
+                        );
+                        // You may want to store t.getId() per purchase in DB
+                        stripeTransferService.update(p, t, "COMPLETED");
+                    }
                 }
 
             }

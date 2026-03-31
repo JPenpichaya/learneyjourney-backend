@@ -14,7 +14,8 @@ import org.springframework.context.annotation.Profile;
 @Profile("!test")
 @Getter
 @Setter
-public class StripeConfig {
+public class
+StripeConfig {
     private String secretKey;
     private String webhookSecret;
     private String successUrl;
