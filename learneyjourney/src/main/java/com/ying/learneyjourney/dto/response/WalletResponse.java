@@ -7,6 +7,7 @@ public record WalletResponse(
         int freeExportsUsed,
         int freeExportsLimit,
         int dailyGenerationsUsed,
-        int dailyGenerationLimit
+        int dailyGenerationLimit,
+        int generationCredits
 ) {
 }

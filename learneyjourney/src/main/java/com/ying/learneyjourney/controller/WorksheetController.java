@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -85,11 +86,11 @@ public class WorksheetController {
     }
 
     @PostMapping("/export")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void export(@Valid @RequestBody ExportWorksheetRequest request,
-                       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
+    public ResponseEntity<Void> export(@Valid @RequestBody ExportWorksheetRequest request,
+                                 @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
         worksheetService.export(request, userId);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")

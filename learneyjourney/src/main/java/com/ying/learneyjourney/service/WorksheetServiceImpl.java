@@ -66,7 +66,7 @@ public class WorksheetServiceImpl implements WorksheetService {
             version.setWorksheet(worksheet);
             version.setVersionLabel(payload.versionLabel());
             version.setSortOrder(payload.sortOrder() != null ? payload.sortOrder() : i++);
-            version.setHtmlContent(HtmlSanitizer.sanitize(payload.htmlContent()));
+            version.setHtmlContent(payload.htmlContent());
             worksheetVersionRepository.save(version);
             versions.add(version);
         }
@@ -112,7 +112,7 @@ public class WorksheetServiceImpl implements WorksheetService {
                 .orElseThrow(() -> new NotFoundException("Version not found"));
 
         version.setVersionLabel(request.versionLabel());
-        version.setHtmlContent(HtmlSanitizer.sanitize(request.htmlContent()));
+        version.setHtmlContent(request.htmlContent());
         if (Boolean.TRUE.equals(request.setActive())) {
             worksheet.setActiveVersionLabel(request.versionLabel());
         }
@@ -193,6 +193,7 @@ public class WorksheetServiceImpl implements WorksheetService {
         PageCriteria<WorksheetCriteria> condition = new PageCriteria<>();
         WorksheetCriteria worksheetCriteria = new WorksheetCriteria();
         worksheetCriteria.setSearchText(keyword);
+        worksheetCriteria.setUserId(userId);
         condition.setCondition(worksheetCriteria);
         condition.setPageNumber(page);
         condition.setPageSize(size);

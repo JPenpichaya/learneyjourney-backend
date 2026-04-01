@@ -9,10 +9,13 @@ import com.ying.learneyjourney.dto.request.OpenAiChatResponse;
 import com.ying.learneyjourney.dto.response.GenerateWorksheetResponse;
 import com.ying.learneyjourney.dto.response.WorksheetDetailResponse;
 import com.ying.learneyjourney.entity.User;
+import com.ying.learneyjourney.entity.Worksheet;
+import com.ying.learneyjourney.entity.WorksheetVersion;
 import com.ying.learneyjourney.exception.AiGatewayException;
 import com.ying.learneyjourney.exception.NotFoundException;
 import com.ying.learneyjourney.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.ying.learneyjourney.repository.WorksheetRepository;
+import com.ying.learneyjourney.repository.WorksheetVersionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,79 +28,116 @@ import java.util.List;
 @Slf4j
 @Service
 public class WorksheetGenerationServiceImpl implements WorksheetGenerationService {
-    private final UserRepository userRepository;
 
+    public static final int FREE_DAILY_GENERATION_LIMIT = 5;
+    private static final String DEFAULT_MODEL = "gpt-4.1-mini";
+
+    private final UserRepository userRepository;
     private final RestClient restClient;
     private final OpenAiApiProperties openAiApiProperties;
     private final WorksheetService worksheetService;
+    private final WorksheetImageRenderer worksheetImageRenderer;
+    private final WorksheetVersionRepository worksheetVersionRepository;
+    private final WorksheetRepository worksheetRepository;
 
     public WorksheetGenerationServiceImpl(RestClient.Builder restClientBuilder,
-                                          OpenAiApiProperties openAiApiProperties, WorksheetService worksheetService,
-                                          UserRepository userRepository) {
+                                          OpenAiApiProperties openAiApiProperties,
+                                          WorksheetService worksheetService,
+                                          UserRepository userRepository,
+                                          WorksheetImageRenderer worksheetImageRenderer,
+                                          WorksheetVersionRepository worksheetVersionRepository,
+                                          WorksheetRepository worksheetRepository) {
         this.openAiApiProperties = openAiApiProperties;
         this.worksheetService = worksheetService;
-        this.restClient = restClientBuilder
-                .baseUrl(openAiApiProperties.getBaseUrl())
-                .defaultHeader("Authorization", "Bearer " + openAiApiProperties.getApiKey())
-                .build();
         this.userRepository = userRepository;
+        this.worksheetImageRenderer = worksheetImageRenderer;
+        this.worksheetVersionRepository = worksheetVersionRepository;
+        this.worksheetRepository = worksheetRepository;
+
+        this.restClient = restClientBuilder
+                .baseUrl(normalizeBaseUrl(openAiApiProperties.getBaseUrl()))
+                .defaultHeader("Authorization", "Bearer " + openAiApiProperties.getApiKey())
+                .defaultHeader("Content-Type", "application/json")
+                .build();
     }
 
-    public static final int FREE_DAILY_GENERATION_LIMIT = 5;
-
     @Override
-    public GenerateWorksheetResponse generateWorksheet(GenerateWorksheetRequest request, String userId) {
+    public GenerateWorksheetResponse generate(GenerateWorksheetRequest request, String userId) {
         validateRequest(request);
         validateApiKey();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        enforceGenerationLimit(user);
 
         String language = normalizeLanguage(request.outputLanguage());
         String systemPrompt = buildSystemPrompt(language);
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
-        enforceGenerationLimit(user);
-
         OpenAiChatRequest openAiRequest = new OpenAiChatRequest(
-                "gpt-4.1-mini",
+                DEFAULT_MODEL,
                 List.of(
                         new OpenAiChatRequest.Message("system", systemPrompt),
                         new OpenAiChatRequest.Message("user", request.prompt())
                 ),
-                0.7
+                0.5
         );
 
         try {
             OpenAiChatResponse openAiResponse = restClient.post()
-                    .uri(openAiApiProperties.getBaseUrl() + "/v1/chat/completions")
-                    .header("Authorization", "Bearer " + openAiApiProperties.getApiKey())
-                    .header("Content-Type", "application/json")
+                    .uri("/chat/completions")
                     .body(openAiRequest)
                     .retrieve()
                     .body(OpenAiChatResponse.class);
 
-            String html = extractHtml(openAiResponse);
+            String renderedHtml = extractAndRenderHtml(openAiResponse);
 
-            WorksheetDetailResponse savedWorksheet = worksheetService.create(
-                    new CreateWorksheetRequest(
-                            request.userEmail(),
-                            request.title(),
-                            request.subject(),
-                            request.prompt(),
-                            language,
-                            List.of(
-                                    new CreateWorksheetRequest.VersionPayload(
-                                            "A",
-                                            0,
-                                            html
-                                    )
-                            ),
-                            "A"
-                    ), userId
-            );
+            if (request.existingWorksheetId() != null) {
+                Worksheet worksheet = worksheetRepository.findById(request.existingWorksheetId())
+                        .orElseThrow(() -> new NotFoundException("Worksheet not found"));
 
-            return new GenerateWorksheetResponse(savedWorksheet.id(), html);
+                int nextOrder = worksheet.getVersions().size();
+                String nextLabel = generateLabel(nextOrder);
+
+                WorksheetVersion newVersion = new WorksheetVersion();
+                newVersion.setWorksheet(worksheet);
+                newVersion.setSortOrder(nextOrder);
+                newVersion.setVersionLabel(nextLabel);
+                newVersion.setHtmlContent(renderedHtml);
+
+                worksheetVersionRepository.save(newVersion);
+
+                worksheet.setActiveVersionLabel(nextLabel);
+                worksheetRepository.save(worksheet);
+
+                return new GenerateWorksheetResponse(worksheet.getId(), renderedHtml);
+            } else {
+                WorksheetDetailResponse savedWorksheet = worksheetService.create(
+                        new CreateWorksheetRequest(
+                                request.userEmail(),
+                                request.title(),
+                                request.subject(),
+                                request.prompt(),
+                                language,
+                                List.of(
+                                        new CreateWorksheetRequest.VersionPayload(
+                                                "A",
+                                                0,
+                                                renderedHtml
+                                        )
+                                ),
+                                "A"
+                        ),
+                        userId
+                );
+
+                return new GenerateWorksheetResponse(savedWorksheet.id(), renderedHtml);
+            }
 
         } catch (RestClientResponseException e) {
-            log.error("OpenAI API error. status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
+            log.error("OpenAI API error. status={}, body={}",
+                    e.getStatusCode().value(),
+                    e.getResponseBodyAsString());
 
             if (e.getStatusCode().value() == 401) {
                 throw new AiGatewayException(HttpStatus.UNAUTHORIZED, "Invalid OpenAI API key.");
@@ -117,6 +157,17 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                     e.getMessage() != null ? e.getMessage() : "Unknown error"
             );
         }
+    }
+
+    private String generateLabel(int index) {
+        if (index < 0) return "A";
+        StringBuilder label = new StringBuilder();
+        int temp = index;
+        while (temp >= 0) {
+            label.insert(0, (char) ('A' + (temp % 26)));
+            temp = (temp / 26) - 1;
+        }
+        return label.toString();
     }
 
     private void validateRequest(GenerateWorksheetRequest request) {
@@ -174,7 +225,21 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                 - Do NOT wrap output in ```html ``` code fences
                 - Do NOT include <html>, <head>, or <body> tags
                 - Use clean semantic HTML only
-                - Allowed tags include: <h1>, <h2>, <h3>, <p>, <ol>, <ul>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <hr>, <strong>, <em>, <u>, <div>, <span>
+
+                ALLOWED TAGS:
+                <h1>, <h2>, <h3>, <p>, <ol>, <ul>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <hr>, <strong>, <em>, <u>, <div>, <span>, <img>
+
+                IMAGE RULES:
+                - Include images or diagrams whenever they are relevant and helpful for the worksheet topic
+                - DO NOT use real URLs
+                - DO NOT embed base64 images directly
+                - For every needed image or diagram, use this exact placeholder format inside img src:
+                  {{IMAGE: clear visual description}}
+                - Example:
+                  <img src="{{IMAGE: a labeled diagram of the solar system}}" alt="Solar system diagram" style="width: 100%; max-width: 500px; display: block; margin: 12px auto;" />
+                - If the worksheet topic benefits from a visual, include at least one image placeholder
+
+                DESIGN RULES:
                 - Include inline CSS styles for layout and spacing
                 - Make it look like a clean printable worksheet
                 - Add a clear title
@@ -185,10 +250,16 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                 - If the user asks for an answer key, include it in a clearly separated section at the bottom
                 - Use font-family: inherit
                 - Keep the design professional, simple, and readable
+
+                OUTPUT RULES:
+                - Return only worksheet HTML
+                - No explanations before or after the HTML
+                - Do not mention placeholders outside the HTML itself
+
                 """ + languageInstruction;
     }
 
-    private String extractHtml(OpenAiChatResponse response) {
+    private String extractAndRenderHtml(OpenAiChatResponse response) {
         if (response == null
                 || response.choices() == null
                 || response.choices().isEmpty()
@@ -207,6 +278,7 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
         html = html.replaceFirst("^```html\\s*", "");
         html = html.replaceFirst("^```\\s*", "");
         html = html.replaceFirst("\\s*```$", "");
+        html = html.trim();
 
         if (html.isBlank()) {
             throw new AiGatewayException(
@@ -215,18 +287,41 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
             );
         }
 
-        return html.trim();
+        try {
+            String renderedHtml = worksheetImageRenderer.renderImages(html);
+
+            if (isBlank(renderedHtml)) {
+                throw new AiGatewayException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Rendered worksheet HTML is empty."
+                );
+            }
+
+            return renderedHtml.trim();
+        } catch (Exception e) {
+            log.error("Failed to render worksheet images", e);
+            throw new AiGatewayException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to render worksheet images."
+            );
+        }
     }
 
     private void enforceGenerationLimit(User user) {
-        resetDailyGenerationIfNeeded(user);
-
         if (user.getPlanType() == PlanType.PRO) {
             return;
         }
 
-        int used = user.getDailyGenerationsUsed() == null ? 0 : user.getDailyGenerationsUsed();
+        int credits = user.getGenerationCredits() == null ? 0 : user.getGenerationCredits();
+        if (credits > 0) {
+            user.setGenerationCredits(credits - 1);
+            userRepository.save(user);
+            return;
+        }
 
+        resetDailyGenerationIfNeeded(user);
+
+        int used = user.getDailyGenerationsUsed() == null ? 0 : user.getDailyGenerationsUsed();
         if (used >= FREE_DAILY_GENERATION_LIMIT) {
             throw new AiGatewayException(
                     HttpStatus.TOO_MANY_REQUESTS,
@@ -241,7 +336,8 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
     private void resetDailyGenerationIfNeeded(User user) {
         LocalDate today = LocalDate.now();
 
-        if (user.getDailyGenerationResetDate() == null || !today.equals(user.getDailyGenerationResetDate())) {
+        if (user.getDailyGenerationResetDate() == null
+                || !today.equals(user.getDailyGenerationResetDate())) {
             user.setDailyGenerationsUsed(0);
             user.setDailyGenerationResetDate(today);
         }
@@ -249,5 +345,20 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private static String normalizeBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return baseUrl;
+        }
+
+        String normalized = baseUrl.trim();
+        if (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        if (normalized.endsWith("/v1")) {
+            return normalized;
+        }
+        return normalized + "/v1";
     }
 }

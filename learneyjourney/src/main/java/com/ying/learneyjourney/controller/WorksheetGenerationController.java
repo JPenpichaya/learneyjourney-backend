@@ -7,6 +7,7 @@ import com.ying.learneyjourney.service.WorksheetGenerationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +23,13 @@ public class WorksheetGenerationController {
     public GenerateWorksheetResponse generate(@Valid @RequestBody GenerateWorksheetRequest request,
                                               @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) throws Exception {
         String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
-        return worksheetGenerationService.generateWorksheet(request, userId);
+        return worksheetGenerationService.generate(request, userId);
     }
+
+//    @PostMapping(value = "/generate/html", produces = MediaType.TEXT_HTML_VALUE)
+//    public String generateHtml(@Valid @RequestBody GenerateWorksheetRequest request,
+//                               @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
+//        String userId = firebaseAuthUtil.getUserIdFromToken(authHeader);
+//        return worksheetGenerationService.generate(request, userId).getHtml();
+//    }
 }

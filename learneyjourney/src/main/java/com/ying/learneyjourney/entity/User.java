@@ -50,4 +50,7 @@ public class User extends Auditable {
 
     @Column(name = "daily_generation_reset_date")
     private LocalDate dailyGenerationResetDate;
+
+    @Column(name = "generation_credits", nullable = false)
+    private Integer generationCredits = 0;
 }

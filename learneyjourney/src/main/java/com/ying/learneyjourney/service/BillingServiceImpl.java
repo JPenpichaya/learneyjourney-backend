@@ -39,6 +39,11 @@ public class BillingServiceImpl implements BillingService {
             "PACK_25", 25
     );
 
+    private static final Map<String, Integer> GENERATION_CREDITS_PACKS = Map.of(
+            "PACK_10", 100,
+            "PACK_25", 500
+    );
+
     // Stripe uses smallest currency unit
     // 99 THB = 9900 satang
     // 199 THB = 19900 satang
@@ -72,7 +77,8 @@ public class BillingServiceImpl implements BillingService {
                 user.getFreeExportsUsed() == null ? 0 : user.getFreeExportsUsed(),
                 user.getFreeExportsLimit() == null ? 2 : user.getFreeExportsLimit(),
                 user.getDailyGenerationsUsed() == null ? 0 : user.getDailyGenerationsUsed(),
-                FREE_DAILY_GENERATION_LIMIT
+                FREE_DAILY_GENERATION_LIMIT,
+                user.getGenerationCredits() == null ? 0 : user.getGenerationCredits()
         );
     }
 
@@ -112,10 +118,19 @@ public class BillingServiceImpl implements BillingService {
         User user = transaction.getUser();
 
         if (transaction.getType() == TransactionType.CREDIT_PURCHASE) {
+            // Apply Export Credits
             CreditWallet wallet = getOrCreateWallet(user);
             int creditsToAdd = transaction.getCreditsAdded() != null ? transaction.getCreditsAdded() : 0;
             wallet.setCredits(wallet.getCredits() + creditsToAdd);
             walletRepository.save(wallet);
+
+            // Apply Generation Credits if it's a known pack
+            String packageCode = transaction.getCourseId();
+            Integer generationCredits = GENERATION_CREDITS_PACKS.get(packageCode);
+            if (generationCredits != null) {
+                user.setGenerationCredits((user.getGenerationCredits() == null ? 0 : user.getGenerationCredits()) + generationCredits);
+                userRepository.save(user);
+            }
         }
 
         if (transaction.getType() == TransactionType.SUBSCRIPTION) {
@@ -209,6 +224,7 @@ public class BillingServiceImpl implements BillingService {
         transaction.setCreditsAdded(credits);
         transaction.setStatus(TransactionStatus.PENDING);
         transaction.setStripeSessionId(session.getId());
+        transaction.setCourseId(packageCode); // Reusing courseId field to store packageCode
 
         transactionRepository.save(transaction);
 

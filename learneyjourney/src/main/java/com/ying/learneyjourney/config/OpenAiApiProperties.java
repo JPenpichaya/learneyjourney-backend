@@ -16,5 +16,7 @@ public class OpenAiApiProperties {
     private String baseUrl;
     private String apiKey;
     private String model;
+    private String textModel = "gpt-4.1-mini";
+    private String imageModel = "gpt-image-1-mini";
 
 }
