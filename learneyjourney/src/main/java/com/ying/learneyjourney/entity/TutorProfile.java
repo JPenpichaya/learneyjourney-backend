@@ -36,13 +36,13 @@ public class TutorProfile extends Auditable {
     @Column(name = "strip_connect", length = 1000)
     private String stripConnect;
 
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "full_name")
     private String fullName;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "email", unique = true)
     private String email;
 
-    @Column(name = "phone_number", nullable = false)
+    @Column(name = "phone_number")
     private String phoneNumber;
 
     private String country;
