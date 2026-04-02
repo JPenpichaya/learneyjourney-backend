@@ -38,15 +38,14 @@ public class SecurityConfig {
     SecurityFilterChain chain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> Customizer.withDefaults())
+                .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) ->
                         res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
-                .httpBasic(Customizer.withDefaults()) // Basic for admin
+                .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // public
                         .requestMatchers(
                                 "/stripe-success.html",
                                 "/public/**",
@@ -62,7 +61,6 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // ✅ USER APIs (USER/TEACHER/ADMIN can call)
                         .requestMatchers("/api/lesson-progress/**",
                                 "/api/users/get-info", "/api/lesson-progress/student/**",
                                 "/api/course/student/**", "/api/video-progress/**",
@@ -73,15 +71,12 @@ public class SecurityConfig {
                                 "/api/v1/billing/**")
                         .hasAnyRole("USER", "TEACHER", "ADMIN")
 
-                        // ✅ TEACHER APIs (TEACHER/ADMIN can call)
                         .requestMatchers("/api/teacher/**")
                         .hasAnyRole("TEACHER", "ADMIN")
 
-                        // ✅ ADMIN APIs (ADMIN only)
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")
 
-                        // everything else: admin
                         .anyRequest().hasRole("ADMIN")
                 )
                 .addFilterBefore(firebaseFilter, UsernamePasswordAuthenticationFilter.class);

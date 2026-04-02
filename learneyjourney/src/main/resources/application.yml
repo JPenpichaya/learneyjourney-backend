@@ -2,7 +2,7 @@ server:
   port:  ${PORT:8080}
 spring:
   profiles:
-    active: dev
+    active: prd
   jpa:
     hibernate:
       ddl-auto: update
