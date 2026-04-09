@@ -197,6 +197,8 @@ public class WorksheetServiceImpl implements WorksheetService {
         condition.setCondition(worksheetCriteria);
         condition.setPageNumber(page);
         condition.setPageSize(size);
+        condition.setSortBy("createdAt");
+        condition.setDirection(Sort.Direction.DESC);
         Page<Worksheet> all = worksheetRepository.findAll(condition.getSpecification(), condition.generatePageRequest());
         return PagedResponse.from(all.map(p -> {
             return new CourseInfoResponse.WorksheetSummaryResponse(
