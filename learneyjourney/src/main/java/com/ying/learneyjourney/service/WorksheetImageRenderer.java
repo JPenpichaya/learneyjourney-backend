@@ -64,17 +64,17 @@ public class WorksheetImageRenderer {
         String altText = (alt == null || alt.isBlank()) ? description : alt;
 
         try {
-            if (classifier.shouldGenerateSvg(description)) {
-                log.info("Generating SVG for description: {}", description);
-
-                String rawSvg = openAiSvgClient.generateSvg(description);
-                log.info("Raw SVG response: {}", rawSvg);
-
-                String safeSvg = svgSanitizer.sanitize(rawSvg);
-                log.info("SVG sanitized successfully");
-
-                return wrapInlineSvg(safeSvg, style);
-            }
+//            if (classifier.shouldGenerateSvg(description)) {
+//                log.info("Generating SVG for description: {}", description);
+//
+//                String rawSvg = openAiSvgClient.generateSvg(description);
+//                log.info("Raw SVG response: {}", rawSvg);
+//
+//                String safeSvg = svgSanitizer.sanitize(rawSvg);
+//                log.info("SVG sanitized successfully");
+//
+//                return wrapInlineSvg(safeSvg, style);
+//            }
 
             log.info("Generating PNG image for description: {}", description);
             String dataUrl = openAiImageClient.generatePngDataUrl(description);

@@ -30,7 +30,7 @@ import java.util.List;
 public class WorksheetGenerationServiceImpl implements WorksheetGenerationService {
 
     public static final int FREE_DAILY_GENERATION_LIMIT = 5;
-    private static final String DEFAULT_MODEL = "gpt-4.1-mini";
+    private static final String DEFAULT_MODEL = "gpt-4o";
 
     private final UserRepository userRepository;
     private final RestClient restClient;
