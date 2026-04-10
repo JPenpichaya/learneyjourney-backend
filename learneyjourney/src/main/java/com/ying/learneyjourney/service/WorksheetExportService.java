@@ -32,8 +32,8 @@ public class WorksheetExportService {
         // 2. deduct credits / record export
         // 3. increment export count
 
-        String safeHtml = sanitizeForPdf(buildPdfHtml(version.getHtmlContent()));
-        return pdfGenerationService.generatePdfFromHtml(safeHtml);
+        String html = buildPdfHtml(version.getHtmlContent());
+        return pdfGenerationService.generatePdfFromHtml(html);
     }
 
     private String sanitizeForPdf(String html) {
