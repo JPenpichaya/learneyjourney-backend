@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: "optional:file:./learneyjourney/.env.dev.properties"
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${SPRING_DATASOURCE_URL}
@@ -55,9 +53,9 @@ app:
   image:
     default-provider: freepik
     unsplash:
-      access-key: YOUR_UNSPLASH_ACCESS_KEY
+      access-key: kK5PW1BVoXwB88PkzXZtt0o70GxqKO-fMICy36fsBxI
     freepik:
-      api-key: YOUR_FREEPIK_API_KEY
+      api-key: FPSXe4355aa4943d843496c3b3a1acb6456a
     download:
       connect-timeout-ms: 8000
       read-timeout-ms: 15000

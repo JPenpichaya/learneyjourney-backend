@@ -56,7 +56,8 @@ public class SecurityConfig {
                                 "/api/checkout/create-session",
                                 "/token",
                                 "/api/course/all/**",
-                                "/api/auth/login"
+                                "/api/auth/login",
+                                "/api/agora/token"
                         ).permitAll()
 
                         .requestMatchers("/api/auth/**").permitAll()

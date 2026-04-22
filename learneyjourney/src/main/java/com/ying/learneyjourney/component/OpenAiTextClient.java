@@ -2,6 +2,7 @@ package com.ying.learneyjourney.component;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ying.learneyjourney.config.OpenAiApiProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -10,15 +11,12 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class OpenAiTextClient {
 
-    private final RestClient restClient;
+    private final RestClient.Builder restClientBuilder;
     private final OpenAiApiProperties properties;
 
-    public OpenAiTextClient(RestClient restClient, OpenAiApiProperties properties) {
-        this.restClient = restClient;
-        this.properties = properties;
-    }
 
     public String generateHtml(String prompt) {
         ChatCompletionRequest request = new ChatCompletionRequest(
@@ -26,6 +24,8 @@ public class OpenAiTextClient {
                 List.of(new Message("user", prompt)),
                 0.4
         );
+
+        RestClient restClient = restClientBuilder.build();
 
         ChatCompletionResponse response = restClient.post()
                 .uri(properties.getBaseUrl()+"/v1/chat/completions")

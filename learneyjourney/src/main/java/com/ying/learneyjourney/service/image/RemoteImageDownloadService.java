@@ -1,7 +1,7 @@
 package com.ying.learneyjourney.service.image;
 
+import com.ying.learneyjourney.config.ImageDownloadProperties;
 import com.ying.learneyjourney.dto.request.DownloadedImage;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -21,12 +21,11 @@ public class RemoteImageDownloadService {
 
     public RemoteImageDownloadService(
             RestTemplate restTemplate,
-            @Value("${app.image.download.allowed-hosts}") List<String> allowedHosts,
-            @Value("${app.image.download.max-image-bytes:8000000}") int maxImageBytes
+            ImageDownloadProperties properties
     ) {
         this.restTemplate = restTemplate;
-        this.allowedHosts = new HashSet<>(allowedHosts);
-        this.maxImageBytes = maxImageBytes;
+        this.allowedHosts = new HashSet<>(properties.getAllowedHosts());
+        this.maxImageBytes = properties.getMaxImageBytes();
     }
 
     @Cacheable(value = "image-download", key = "#url")

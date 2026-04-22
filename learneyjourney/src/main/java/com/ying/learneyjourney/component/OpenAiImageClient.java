@@ -1,7 +1,9 @@
 package com.ying.learneyjourney.component;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ying.learneyjourney.config.OpenAiApiProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -10,15 +12,11 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class OpenAiImageClient {
 
-    private final RestClient restClient;
+    private final RestClient.Builder restClientBuilder;
     private final OpenAiApiProperties properties;
-
-    public OpenAiImageClient(RestClient restClient, OpenAiApiProperties properties) {
-        this.restClient = restClient;
-        this.properties = properties;
-    }
 
     public String generatePngDataUrl(String description) {
         ImageGenerateRequest request = new ImageGenerateRequest(
@@ -26,13 +24,15 @@ public class OpenAiImageClient {
                 buildPrompt(description),
                 1,
                 "1024x1024",
-                "png",
+                "b64_json",
                 "low",
                 "opaque"
         );
 
+        RestClient restClient = restClientBuilder.build();
+
         ImageGenerateResponse response = restClient.post()
-                .uri(properties.getBaseUrl()+"/v1/images/generations")
+                .uri(properties.getBaseUrl() + "/v1/images/generations")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
@@ -66,7 +66,7 @@ public class OpenAiImageClient {
             String prompt,
             Integer n,
             String size,
-            String output_format,
+            String response_format,
             String quality,
             String background
     ) {

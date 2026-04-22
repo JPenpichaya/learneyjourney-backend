@@ -2,6 +2,7 @@ package com.ying.learneyjourney.component;
 
 import com.ying.learneyjourney.config.OpenAiApiProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -10,15 +11,12 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class OpenAiSvgClient {
 
-    private final RestClient restClient;
+    private final RestClient.Builder restClientBuilder;
     private final OpenAiApiProperties properties;
 
-    public OpenAiSvgClient(RestClient restClient, OpenAiApiProperties properties) {
-        this.restClient = restClient;
-        this.properties = properties;
-    }
 
     public String generateSvg(String description) {
         String prompt = """
@@ -42,6 +40,8 @@ public class OpenAiSvgClient {
                 Create an SVG for:
                 %s
                 """.formatted(description);
+
+        RestClient restClient = restClientBuilder.build();
 
         OpenAiTextClient.ChatCompletionRequest request =
                 new OpenAiTextClient.ChatCompletionRequest(

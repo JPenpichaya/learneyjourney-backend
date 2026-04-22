@@ -1,7 +1,10 @@
 package com.ying.learneyjourney.service.agora;
-import com.ying.learneyjourney.Util.RtcTokenBuilder2;
 import com.ying.learneyjourney.config.AgoraProperties;
 import com.ying.learneyjourney.dto.response.AgoraTokenResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import io.agora.media.RtcTokenBuilder2;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -32,24 +35,34 @@ public class AgoraTokenService {
 
         int expireSeconds = agoraProperties.getExpireSeconds();
         int currentTs = (int) Instant.now().getEpochSecond();
-        int privilegeExpireTs = currentTs + expireSeconds;
+        int tokenExpire = expireSeconds;
+        int privilegeExpire = expireSeconds;
 
-        String token = RtcTokenBuilder2.buildTokenWithUid(
+        RtcTokenBuilder2 tokenBuilder = new RtcTokenBuilder2();
+
+        String token = tokenBuilder.buildTokenWithUid(
                 agoraProperties.getAppId(),
                 agoraProperties.getAppCertificate(),
                 channel,
                 (int) uid,
                 RtcTokenBuilder2.Role.ROLE_PUBLISHER,
-                privilegeExpireTs
+                tokenExpire,
+                privilegeExpire
         );
 
-        AgoraTokenResponse res = new AgoraTokenResponse();
-        res.setToken(token);
-        res.setUid(uid);
-        res.setAppId(agoraProperties.getAppId());
-        res.setExpiresAt(privilegeExpireTs);
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("Failed to generate Agora token");
+        }
 
-        return res;
+        long expiresAt = currentTs + expireSeconds;
+
+        AgoraTokenResponse response = new AgoraTokenResponse();
+        response.setToken(token);
+        response.setAppId(agoraProperties.getAppId());
+        response.setUid(uid);
+        response.setExpiresAt(expiresAt);
+
+        return response;
     }
 
     private String normalizeChannel(String channel) {
