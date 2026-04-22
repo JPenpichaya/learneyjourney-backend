@@ -33,6 +33,9 @@ public class WorksheetVersion extends Auditable {
     @Column(name = "html_content", nullable = false, columnDefinition = "TEXT")
     private String htmlContent;
 
+    @Column(columnDefinition = "TEXT")
+    private String resolvedHtml;
+
     @Column(name = "export_count", nullable = false)
     private Integer exportCount = 0;
 }

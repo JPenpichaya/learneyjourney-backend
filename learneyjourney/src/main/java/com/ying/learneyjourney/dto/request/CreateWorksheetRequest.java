@@ -18,6 +18,7 @@ public record CreateWorksheetRequest(
     public record VersionPayload(
             @NotBlank @Size(max = 20) String versionLabel,
             Integer sortOrder,
-            @NotBlank String htmlContent
+            @NotBlank String htmlContent,
+            String resolvedHtml
     ) {}
 }

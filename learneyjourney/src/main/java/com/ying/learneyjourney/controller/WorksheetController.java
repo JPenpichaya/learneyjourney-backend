@@ -8,7 +8,7 @@ import com.ying.learneyjourney.dto.request.UpdateWorksheetRequest;
 import com.ying.learneyjourney.dto.response.CourseInfoResponse;
 import com.ying.learneyjourney.dto.response.PagedResponse;
 import com.ying.learneyjourney.dto.response.WorksheetDetailResponse;
-import com.ying.learneyjourney.service.WorksheetService;
+import com.ying.learneyjourney.service.worksheet.WorksheetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

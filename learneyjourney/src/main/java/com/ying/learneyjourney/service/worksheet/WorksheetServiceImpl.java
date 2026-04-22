@@ -1,7 +1,5 @@
-package com.ying.learneyjourney.service;
+package com.ying.learneyjourney.service.worksheet;
 
-import com.ying.learneyjourney.Util.HtmlSanitizer;
-import com.ying.learneyjourney.criteria.CourseCriteria;
 import com.ying.learneyjourney.criteria.WorksheetCriteria;
 import com.ying.learneyjourney.dto.request.CreateWorksheetRequest;
 import com.ying.learneyjourney.dto.request.ExportWorksheetRequest;
@@ -24,7 +22,6 @@ import com.ying.learneyjourney.repository.WorksheetVersionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 

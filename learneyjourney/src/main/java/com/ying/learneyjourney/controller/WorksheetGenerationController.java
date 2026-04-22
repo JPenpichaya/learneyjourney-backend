@@ -3,11 +3,10 @@ package com.ying.learneyjourney.controller;
 import com.ying.learneyjourney.Util.FirebaseAuthUtil;
 import com.ying.learneyjourney.dto.request.GenerateWorksheetRequest;
 import com.ying.learneyjourney.dto.response.GenerateWorksheetResponse;
-import com.ying.learneyjourney.service.WorksheetGenerationService;
+import com.ying.learneyjourney.service.worksheet.WorksheetGenerationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

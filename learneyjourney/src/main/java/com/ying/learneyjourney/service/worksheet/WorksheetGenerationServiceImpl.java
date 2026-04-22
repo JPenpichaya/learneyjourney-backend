@@ -1,5 +1,6 @@
-package com.ying.learneyjourney.service;
+package com.ying.learneyjourney.service.worksheet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ying.learneyjourney.config.OpenAiApiProperties;
 import com.ying.learneyjourney.constaint.PlanType;
 import com.ying.learneyjourney.dto.request.CreateWorksheetRequest;
@@ -16,6 +17,13 @@ import com.ying.learneyjourney.exception.NotFoundException;
 import com.ying.learneyjourney.repository.UserRepository;
 import com.ying.learneyjourney.repository.WorksheetRepository;
 import com.ying.learneyjourney.repository.WorksheetVersionRepository;
+import com.ying.learneyjourney.service.image.AiImageRequestResolverService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,6 +47,7 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
     private final WorksheetImageRenderer worksheetImageRenderer;
     private final WorksheetVersionRepository worksheetVersionRepository;
     private final WorksheetRepository worksheetRepository;
+    private final ObjectMapper objectMapper;
 
     public WorksheetGenerationServiceImpl(RestClient.Builder restClientBuilder,
                                           OpenAiApiProperties openAiApiProperties,
@@ -46,13 +55,15 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                                           UserRepository userRepository,
                                           WorksheetImageRenderer worksheetImageRenderer,
                                           WorksheetVersionRepository worksheetVersionRepository,
-                                          WorksheetRepository worksheetRepository) {
+                                          WorksheetRepository worksheetRepository,
+                                          ObjectMapper objectMapper) {
         this.openAiApiProperties = openAiApiProperties;
         this.worksheetService = worksheetService;
         this.userRepository = userRepository;
         this.worksheetImageRenderer = worksheetImageRenderer;
         this.worksheetVersionRepository = worksheetVersionRepository;
         this.worksheetRepository = worksheetRepository;
+        this.objectMapper = objectMapper;
 
         this.restClient = restClientBuilder
                 .baseUrl(normalizeBaseUrl(openAiApiProperties.getBaseUrl()))
@@ -90,7 +101,8 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                     .retrieve()
                     .body(OpenAiChatResponse.class);
 
-            String renderedHtml = extractAndRenderHtml(openAiResponse);
+            String rawHtml = extractHtml(openAiResponse);
+            String resolvedHtml = renderImagesSafely(rawHtml);
 
             if (request.existingWorksheetId() != null) {
                 Worksheet worksheet = worksheetRepository.findById(request.existingWorksheetId())
@@ -103,14 +115,19 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                 newVersion.setWorksheet(worksheet);
                 newVersion.setSortOrder(nextOrder);
                 newVersion.setVersionLabel(nextLabel);
-                newVersion.setHtmlContent(renderedHtml);
+                newVersion.setHtmlContent(rawHtml);
+                newVersion.setResolvedHtml(resolvedHtml);
 
                 worksheetVersionRepository.save(newVersion);
 
                 worksheet.setActiveVersionLabel(nextLabel);
                 worksheetRepository.save(worksheet);
 
-                return new GenerateWorksheetResponse(worksheet.getId(), renderedHtml);
+                return new GenerateWorksheetResponse(
+                        worksheet.getId(),
+                        rawHtml,
+                        resolvedHtml
+                );
             } else {
                 WorksheetDetailResponse savedWorksheet = worksheetService.create(
                         new CreateWorksheetRequest(
@@ -123,7 +140,8 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                                         new CreateWorksheetRequest.VersionPayload(
                                                 "A",
                                                 0,
-                                                renderedHtml
+                                                rawHtml,
+                                                resolvedHtml
                                         )
                                 ),
                                 "A"
@@ -131,7 +149,11 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                         userId
                 );
 
-                return new GenerateWorksheetResponse(savedWorksheet.id(), renderedHtml);
+                return new GenerateWorksheetResponse(
+                        savedWorksheet.id(),
+                        rawHtml,
+                        resolvedHtml
+                );
             }
 
         } catch (RestClientResponseException e) {
@@ -155,6 +177,60 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
             throw new AiGatewayException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     e.getMessage() != null ? e.getMessage() : "Unknown error"
+            );
+        }
+    }
+
+    private String extractHtml(OpenAiChatResponse response) {
+        if (response == null
+                || response.choices() == null
+                || response.choices().isEmpty()
+                || response.choices().get(0) == null
+                || response.choices().get(0).message() == null
+                || response.choices().get(0).message().content() == null) {
+            throw new AiGatewayException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "OpenAI returned an empty response."
+            );
+        }
+
+        String html = response.choices().get(0).message().content().trim();
+
+        // Remove accidental markdown fences
+        html = html.replaceFirst("^```html\\s*", "");
+        html = html.replaceFirst("^```\\s*", "");
+        html = html.replaceFirst("\\s*```$", "");
+        html = html.trim();
+
+        if (html.isBlank()) {
+            throw new AiGatewayException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Generated worksheet HTML is empty."
+            );
+        }
+
+        return html;
+    }
+
+    private String renderImagesSafely(String rawHtml) {
+        try {
+            String renderedHtml = worksheetImageRenderer.renderImages(rawHtml);
+
+            if (renderedHtml == null || renderedHtml.trim().isEmpty()) {
+                throw new AiGatewayException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Rendered worksheet HTML is empty."
+                );
+            }
+
+            return renderedHtml.trim();
+        } catch (AiGatewayException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to render worksheet images", e);
+            throw new AiGatewayException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to render worksheet images."
             );
         }
     }
@@ -217,94 +293,135 @@ public class WorksheetGenerationServiceImpl implements WorksheetGenerationServic
                 : "\nIMPORTANT: Generate the worksheet content in " + language + ".";
 
         return """
-                You are a professional worksheet and educational document generator. You create beautiful, well-structured HTML worksheets for teachers and educators.
-
-                IMPORTANT RULES:
-                - Return ONLY the HTML content for the worksheet body
-                - Do NOT return markdown
-                - Do NOT wrap output in ```html ``` code fences
-                - Do NOT include <html>, <head>, or <body> tags
-                - Use clean semantic HTML only
-
-                ALLOWED TAGS:
-                <h1>, <h2>, <h3>, <p>, <ol>, <ul>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <hr>, <strong>, <em>, <u>, <div>, <span>, <img>
-
-                IMAGE RULES:
-                - Include images or diagrams whenever they are relevant and helpful for the worksheet topic
-                - DO NOT use real URLs
-                - DO NOT embed base64 images directly
-                - For every needed image or diagram, use this exact placeholder format inside img src:
-                  {{IMAGE: clear visual description}}
-                - Example:
-                  <img src="{{IMAGE: a labeled diagram of the solar system}}" alt="Solar system diagram" style="width: 100%; max-width: 500px; display: block; margin: 12px auto;" />
-                - If the worksheet topic benefits from a visual, include at least one image placeholder
-
-                DESIGN RULES:
-                - Include inline CSS styles for layout and spacing
-                - Make it look like a clean printable worksheet
-                - Add a clear title
-                - Add instructions where appropriate
-                - Number questions clearly
-                - Use underscores for blanks: ____________
-                - Format multiple choice options as A) B) C) D)
-                - If the user asks for an answer key, include it in a clearly separated section at the bottom
-                - Use font-family: inherit
-                - Keep the design professional, simple, and readable
-
-                OUTPUT RULES:
-                - Return only worksheet HTML
-                - No explanations before or after the HTML
-                - Do not mention placeholders outside the HTML itself
-
+                You are a professional worksheet and educational document designer specializing in creating modern, visually appealing, classroom-ready HTML worksheets.
+                
+                  Your output should feel like a premium educational product — clean, engaging, and thoughtfully designed for both students and teachers.
+    
+                  CORE OBJECTIVE
+                  Create a beautiful, structured, and highly readable worksheet using clean semantic HTML with modern layout styling and strong visual hierarchy.
+    
+                  STRICT OUTPUT RULES
+                  - Return ONLY the HTML content for the worksheet body
+                  - Do NOT return markdown
+                  - Do NOT wrap output in code blocks
+                  - Do NOT include <html>, <head>, or <body> tags
+                  - Do NOT include explanations
+    
+                  ALLOWED HTML TAGS
+                  <h1>, <h2>, <h3>, <p>, <ol>, <ul>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td>, <hr>, <strong>, <em>, <u>, <div>, <span>, <img>
+    
+                  DESIGN REQUIREMENTS
+                  Make the worksheet look modern and polished, not plain.
+    
+                  Use:
+                  - Soft spacing and padding
+                  - Clear section separation using <div> containers
+                  - Subtle visual hierarchy using font size, bold headings, spacing, and clean grouping
+                  - Centered header section with strong title presence
+                  - Section cards using bordered or lightly shaded div blocks
+                  - Balanced margins for print with max-width: 800px and centered layout
+    
+                  Styling Guidelines:
+                  - font-family: inherit
+                  - Use inline CSS only
+                  - Use spacing like margin-bottom: 16px to 28px
+                  - Use soft borders: border: 1px solid #ddd
+                  - Use rounded corners: border-radius: 8px
+                  - Use light background sections: background-color: #f9f9f9
+                  - Keep it print-friendly and avoid dark backgrounds
+    
+                  PRINT AND PAGINATION RULES (VERY IMPORTANT)
+                  The worksheet will be exported to PDF, so the HTML must be pagination-safe and print-friendly.
+    
+                  Follow these rules:
+                  - Keep sections logically grouped so a question block stays together when possible
+                  - Avoid breaking a single question across pages
+                  - Avoid placing large empty spaces before page breaks
+                  - Do not create layouts that depend on screen-only viewing
+                  - Keep images moderate in size so they do not force awkward page breaks
+                  - Use simple vertical stacking rather than multi-column layouts
+                  - Important sections such as instructions, question groups, tables, and answer key should be wrapped in div containers with print-friendly inline styles
+                  - For major sections, use inline styles like:
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                  - For sections that should start on a new PDF page when appropriate, use:
+                    page-break-before: always;
+                  - Keep tables readable and avoid overly wide tables
+                  - If there is an answer key, place it in a clearly separated section at the bottom, and start it on a new page only if the worksheet is already long
+    
+                  IMAGE RULES
+                  - Include visuals whenever they improve understanding
+                  - Use ONLY this format for images:
+                    <img src="{{IMAGE: clear visual description}}" alt="description" style="width: 100%; max-width: 500px; display: block; margin: 16px auto;" />
+                  - Do NOT use real URLs
+                  - Do NOT use base64
+                  - Use at least one image for science, math, geography, biology, diagrams, labeling tasks, or any visual-heavy topic
+                  - Images should use print-safe sizing and should not dominate the page
+    
+                  CONTENT STRUCTURE
+                  Organize the worksheet like this:
+    
+                  1. Header Section
+                  - Large centered title
+                  - Short subtitle or topic description
+                  - Optional student info line:
+                    Name: ____________   Date: ____________
+    
+                  2. Instructions Block
+                  - Clear and concise
+                  - Placed inside a styled container
+    
+                  3. Main Sections
+                  Use multiple sections where appropriate, such as:
+                  - Multiple Choice
+                  - Fill in the Blanks
+                  - Short Answer
+                  - Matching
+                  - Diagram Labeling
+                  - True or False
+                  - Challenge Task
+    
+                  4. Question Formatting
+                  - Number all questions clearly
+                  - Format multiple choice options as:
+                    A) ...
+                    B) ...
+                    C) ...
+                    D) ...
+                  - Use blanks like: ____________
+    
+                  5. Optional Challenge Section
+                  - Add one or more higher-order thinking questions when suitable
+    
+                  6. Answer Key
+                  - If the user asks for an answer key, include it at the bottom
+                  - Separate it clearly with <hr>
+                  - Label it clearly
+                  - Keep answer key neatly grouped
+                  - Start on a new page only when necessary
+    
+                  QUALITY STANDARD
+                  The worksheet should feel like:
+                  - A premium printable PDF
+                  - Suitable for international schools, tutoring centers, and polished classroom use
+                  - Clean, modern, and visually engaging
+                  - Professionally designed, not just text dumped onto a page
+    
+                  AVOID
+                  - Plain walls of text
+                  - Cramped layout
+                  - Weak spacing
+                  - Bare, boring formatting
+                  - Missing instructions
+                  - Overly decorative styles that hurt print readability
+                  - Large blocks that split badly across pages
+                  - Oversized images or tables that overflow
+    
+                  FINAL REMINDER
+                  You are not just generating content.
+                  You are designing an educational worksheet that should look attractive, modern, professional, and ready to print as a well-paginated PDF.
+                  Return only the worksheet HTML.
                 """ + languageInstruction;
-    }
-
-    private String extractAndRenderHtml(OpenAiChatResponse response) {
-        if (response == null
-                || response.choices() == null
-                || response.choices().isEmpty()
-                || response.choices().get(0) == null
-                || response.choices().get(0).message() == null
-                || response.choices().get(0).message().content() == null) {
-            throw new AiGatewayException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "OpenAI returned an empty response."
-            );
-        }
-
-        String html = response.choices().get(0).message().content().trim();
-
-        // Remove accidental markdown fences
-        html = html.replaceFirst("^```html\\s*", "");
-        html = html.replaceFirst("^```\\s*", "");
-        html = html.replaceFirst("\\s*```$", "");
-        html = html.trim();
-
-        if (html.isBlank()) {
-            throw new AiGatewayException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Generated worksheet HTML is empty."
-            );
-        }
-
-        try {
-            String renderedHtml = worksheetImageRenderer.renderImages(html);
-
-            if (isBlank(renderedHtml)) {
-                throw new AiGatewayException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Rendered worksheet HTML is empty."
-                );
-            }
-
-            return renderedHtml.trim();
-        } catch (Exception e) {
-            log.error("Failed to render worksheet images", e);
-            throw new AiGatewayException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to render worksheet images."
-            );
-        }
     }
 
     private void enforceGenerationLimit(User user) {

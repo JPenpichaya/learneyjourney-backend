@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record GenerateWorksheetResponse(
         UUID worksheetId,
-        String html
+        String html,
+        String resolvedHtml
 ) {
 }

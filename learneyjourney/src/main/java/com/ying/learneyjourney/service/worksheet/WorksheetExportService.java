@@ -1,9 +1,12 @@
-package com.ying.learneyjourney.service;
+package com.ying.learneyjourney.service.worksheet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ying.learneyjourney.dto.response.WorksheetAiResponse;
 import com.ying.learneyjourney.entity.Worksheet;
 import com.ying.learneyjourney.entity.WorksheetVersion;
 import com.ying.learneyjourney.repository.WorksheetRepository;
 import com.ying.learneyjourney.repository.WorksheetVersionRepository;
+import com.ying.learneyjourney.service.image.AiImageRequestResolverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +17,9 @@ import java.util.UUID;
 public class WorksheetExportService {
     private final WorksheetRepository worksheetRepository;
     private final WorksheetVersionRepository worksheetVersionRepository;
+    private final AiImageRequestResolverService aiImageRequestResolverService;
     private final PdfGenerationService pdfGenerationService;
+    private final ObjectMapper objectMapper;
 
     public byte[] exportWorksheetPdf(UUID worksheetId, UUID versionId, String userId) {
         Worksheet worksheet = worksheetRepository.findById(worksheetId)
@@ -32,8 +37,18 @@ public class WorksheetExportService {
         // 2. deduct credits / record export
         // 3. increment export count
 
-        String html = buildPdfHtml(version.getHtmlContent());
-        return pdfGenerationService.generatePdfFromHtml(html);
+        try {
+            WorksheetAiResponse aiResponse = objectMapper.readValue(
+                    version.getHtmlContent(),
+                    WorksheetAiResponse.class
+            );
+
+            String htmlWithEmbeddedImages = aiImageRequestResolverService.resolveAndEmbed(aiResponse);
+            String cleanedHtml = sanitizeForPdf(htmlWithEmbeddedImages);
+            return pdfGenerationService.generatePdfFromHtml(cleanedHtml);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to export worksheet PDF", e);
+        }
     }
 
     private String sanitizeForPdf(String html) {

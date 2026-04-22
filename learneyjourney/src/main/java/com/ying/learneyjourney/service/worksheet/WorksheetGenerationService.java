@@ -1,4 +1,4 @@
-package com.ying.learneyjourney.service;
+package com.ying.learneyjourney.service.worksheet;
 
 import com.ying.learneyjourney.dto.request.GenerateWorksheetRequest;
 import com.ying.learneyjourney.dto.response.GenerateWorksheetResponse;

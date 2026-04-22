@@ -1,4 +1,4 @@
-package com.ying.learneyjourney.service;
+package com.ying.learneyjourney.service.worksheet;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -26,8 +26,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
-
-import static com.ying.learneyjourney.service.WorksheetGenerationServiceImpl.FREE_DAILY_GENERATION_LIMIT;
 
 @Service
 @RequiredArgsConstructor

@@ -52,7 +52,30 @@ app:
   backendUrl: "https://learney-journey-24285490035.asia-southeast1.run.app"
   allow-origins: "https://learneyjourney.com,https://www.learneyjourney.com,http://localhost:5173, https://learney-frontend-dev-24285490035.asia-southeast1.run.app"
   require-basic-auth: true
+  image:
+    default-provider: freepik
+    unsplash:
+      access-key: YOUR_UNSPLASH_ACCESS_KEY
+    freepik:
+      api-key: YOUR_FREEPIK_API_KEY
+    download:
+      connect-timeout-ms: 8000
+      read-timeout-ms: 15000
+      max-image-bytes: 8000000
+      allowed-hosts:
+        - images.unsplash.com
+        - plus.unsplash.com
+        - img.freepik.com
+        - image.freepik.com
+        - ftp.freepik.com
+        - cdni.freepik.com
+        - cdn-icons-png.freepik.com
+        - cdn-icons-svg.freepik.com
 openai:
   base-url: https://api.openai.com
   api-key: ${OPENAI_API_KEY}
   model: gpt-4o
+agora:
+  app-id: ${AGORA_APP_ID}
+  app-certificate: ${AGORA_APP_CERTIFICATE}
+  expire-seconds: 3600

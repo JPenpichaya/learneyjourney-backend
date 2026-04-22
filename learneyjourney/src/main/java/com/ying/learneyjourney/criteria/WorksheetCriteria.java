@@ -4,12 +4,15 @@ import com.ying.learneyjourney.entity.Worksheet;
 import com.ying.learneyjourney.master.SearchCriteria;
 import jakarta.persistence.criteria.Predicate;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 public class WorksheetCriteria extends SearchCriteria<Worksheet> {
     private String userId;
     @Override
